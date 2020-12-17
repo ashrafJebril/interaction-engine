@@ -1,6 +1,7 @@
 <template>
   <q-layout view="lHh Lpr lFf">
-    <q-header elevated>
+    <q-header class="bg-smoke text-black pb-2">
+    <div class="h-1 w-full bg-gradient-to-r from-blue-500 via-green-200 to-yellow-400  mb-1"></div>
       <q-toolbar>
         <q-btn
           flat
@@ -12,7 +13,7 @@
         />
 
         <q-toolbar-title>
-          Quasar App
+          <img src="../assets/img/logo.png" class="w-12" alt="" srcset="">
         </q-toolbar-title>
 
         <div>Quasar v{{ $q.version }}</div>
@@ -25,6 +26,7 @@
       bordered
       content-class="bg-grey-1"
     >
+    <div class="h-1 w-full bg-gradient-to-r from-yellow-400 via-green-200 to-blue-500  mb-1"></div>
       <q-list>
         <q-item-label
           header
