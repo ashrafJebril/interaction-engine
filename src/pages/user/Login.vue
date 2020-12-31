@@ -4,9 +4,11 @@
       <div class="py-12 bg-blue-100 lg:bg-white flex justify-center lg:justify-start lg:px-12">
         <div class="cursor-pointer flex items-center">
           <div>
-            <img src="../../assets/img/logo.png" class="h-12" alt="">
+            <img src="../../assets/img/logo.png" class="h-12" alt />
           </div>
-          <div class="text-2xl text-blue-800 tracking-wide ml-2 font-semibold">Abwaab Interaction Engine</div>
+          <div
+            class="text-2xl text-blue-800 tracking-wide ml-2 font-semibold"
+          >Abwaab Interaction Engine</div>
         </div>
       </div>
       <div class="mt-10 px-12 sm:px-24 md:px-48 lg:px-12 lg:mt-16 xl:px-24 xl:max-w-2xl">
@@ -14,12 +16,13 @@
           class="text-center text-4xl text-blue-900 font-display font-semibold lg:text-left xl:text-5xl xl:text-bold"
         >Log in</h2>
         <div class="mt-12">
-          <form>
+          <!-- <form> -->
             <div>
               <div class="text-sm font-bold text-gray-700 tracking-wide">Email Address</div>
               <input
                 class="w-full text-lg py-2 border-b border-gray-300 focus:outline-none focus:border-blue-500"
-                type
+                type="email"
+                v-model="email"
                 placeholder="mike@gmail.com"
               />
             </div>
@@ -29,30 +32,46 @@
               </div>
               <input
                 class="w-full text-lg py-2 border-b border-gray-300 focus:outline-none focus:border-blue-500"
-                type
+                type="password"
+                v-model="password"
                 placeholder="Enter your password"
               />
             </div>
             <div class="mt-10">
               <button
+              @click="login"
                 class="bg-blue-500 text-gray-100 p-4 w-full rounded-full tracking-wide font-semibold font-display focus:outline-none focus:shadow-outline hover:bg-blue-600 shadow-lg"
               >Log In</button>
             </div>
-          </form>
-
+          <!-- </form> -->
         </div>
       </div>
     </div>
-    <div class=" lg:flex items-center justify-center bg-blue-100 flex-1 h-screen">
-      <div class="max-w-xs transform duration-200 hover:scale-110 ">
-        <img src="../../assets/img/Access.svg"  alt="">
+    <div class="lg:flex items-center justify-center bg-blue-100 flex-1 h-screen">
+      <div class="max-w-xs transform duration-200 hover:scale-110">
+        <img src="../../assets/img/Access.svg" alt />
       </div>
     </div>
   </div>
 </template>
 
 <script>
-export default {};
+export default {
+  data: () => ({
+    email: "admin@abwaab.me",
+    password: "jqx3XthC?V",
+  }),
+  methods: {
+    login() {
+      let data = {
+        username: this.email,
+        password: this.password,
+      };
+
+      this.$store.dispatch('login', data)
+    },
+  },
+};
 </script>
 
 <style type="text/css">
