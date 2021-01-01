@@ -39,47 +39,17 @@ import EssentialLink from "components/EssentialLink.vue";
 
 const linksData = [
   {
-    title: "Discussion Board",
-    caption: "Abwaab Discussion Board",
+    title: "DashBoard",
+    caption: "Abwaab Dash Board",
     icon: "school",
-    link: "/Discussion-Board",
+    link: "/"
   },
   {
-    title: "Github",
-    caption: "github.com/quasarframework",
-    icon: "code",
-    link: "https://github.com/quasarframework",
-  },
-  {
-    title: "Discord Chat Channel",
-    caption: "chat.quasar.dev",
-    icon: "chat",
-    link: "https://chat.quasar.dev",
-  },
-  {
-    title: "Forum",
-    caption: "forum.quasar.dev",
-    icon: "record_voice_over",
-    link: "https://forum.quasar.dev",
-  },
-  {
-    title: "Twitter",
-    caption: "@quasarframework",
-    icon: "rss_feed",
-    link: "https://twitter.quasar.dev",
-  },
-  {
-    title: "Facebook",
-    caption: "@QuasarFramework",
-    icon: "public",
-    link: "https://facebook.quasar.dev",
-  },
-  {
-    title: "Quasar Awesome",
-    caption: "Community Quasar projects",
-    icon: "favorite",
-    link: "https://awesome.quasar.dev",
-  },
+    title: "Comments Managment",
+    caption: "Abwaab Comments Managment",
+    icon: "dehaze",
+    link: "/Comments-Managments"
+  }
 ];
 export default {
   name: "MainLayout",
@@ -87,13 +57,13 @@ export default {
   data() {
     return {
       leftDrawerOpen: false,
-      essentialLinks: linksData,
+      essentialLinks: linksData
     };
   },
   methods: {
-    logoutUSER(){
-      this.$store.dispatch('logout')
+    logoutUSER() {
+      this.$store.dispatch("logout");
     }
-  },
+  }
 };
 </script>

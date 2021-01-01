@@ -14,6 +14,11 @@ const routes = [{
         path: 'Discussion-Board',
         component: () => import('pages/DiscussionBoard.vue')
       },
+      {
+        path: 'Comments-Managments',
+        component: () => import('pages/CommentsManagments.vue')
+      },
+
     ],
     beforeEnter: (to, from, next) => {
       LocalStorage.getItem('isUserLoggedIn') ? next() : next('/login')

@@ -1,5 +1,5 @@
 <template>
-  <q-page class="flex px-4">
+  <q-page class="flex">
     <div class="flex w-full h-12 py-2">
       <q-card flat bordered class="my-card bg-grey-1 w-full">
         <q-card-section>
@@ -15,17 +15,13 @@
                       <q-item-section avatar>
                         <q-icon name="cached" />
                       </q-item-section>
-                      <q-item-section>
-                        Refresh
-                      </q-item-section>
+                      <q-item-section>Refresh</q-item-section>
                     </q-item>
                     <q-item clickable>
                       <q-item-section avatar>
                         <q-icon name="get_app" />
                       </q-item-section>
-                      <q-item-section>
-                        Download
-                      </q-item-section>
+                      <q-item-section>Download</q-item-section>
                     </q-item>
                   </q-list>
                 </q-menu>
@@ -34,55 +30,20 @@
           </div>
         </q-card-section>
 
-        <q-card-section class="flex justify-start">
-          <div class="w-1/4 h-36 justify-between items-center flex flex-col p-2">
-            <div class="w-full flex justify-between items-center">
-              <div class="flex flex-col h-full w-auto">
-                <span class="w-full text-4xl">2425</span>
-                <span class="text-gray-600 text-lg w-full">Post</span>
+        <q-card-section class="flex justify-start md:flex-nowrap">
+          <div
+            class="md:w-1/4 w-full box-shadow p-2 flex flex-col m-2"
+            v-for="(data,index) in dashBoard"
+            :key="index"
+          >
+            <div class="flex flex-nowrap justify-between">
+              <div>
+                <div class="text-bold text-xl">{{data.data}}</div>
+                <div>{{data.title}}</div>
               </div>
-              <img src="../assets/img/post.svg" class="w-36" alt />
+              <img class="w-1/2 h-36" :src="data.image" alt />
             </div>
-            <div class="h-1 bg-blue-300 w-full"></div>
-          </div>
-          <div class="w-1/4 h-36 justify-between items-center flex flex-col p-2">
-            <div class="w-full flex justify-between items-center">
-              <div class="flex flex-col h-full w-auto">
-                <span class="w-full text-4xl">3349</span>
-                <span class="text-gray-600 text-lg w-full">comments</span>
-              </div>
-              <img src="../assets/img/comments.svg" class="w-40" alt />
-            </div>
-            <div class="h-1 bg-blue-300 w-full"></div>
-          </div>
-          <div class="w-1/4 h-36 justify-between items-center flex flex-col p-2">
-            <div class="w-full flex justify-between items-center">
-              <div class="flex flex-col flex-wrap h-full w-1/3">
-                <span class="w-full text-4xl">1670</span>
-                <span class="text-gray-600 text-base">Comments by Abwaab Team</span>
-              </div>
-              <img src="../assets/img/commentByAbwaab.svg" class="w-40" alt />
-            </div>
-            <div class="h-1 bg-blue-300 w-full"></div>
-          </div>
-          <div class="w-1/4 h-36 justify-between items-center flex flex-col p-2">
-            <div class="w-full flex justify-between items-center">
-              <div class="flex flex-col flex-wrap h-full w-1/3">
-                <span class="w-full text-4xl">20139</span>
-                <span class="text-gray-600 text-base">Comments by Users</span>
-              </div>
-              <img src="../assets/img/userComments.svg" class="w-40" alt />
-            </div>
-            <div class="h-1 bg-blue-300 w-full"></div>
-          </div>
-          <div class="w-1/4 h-36 justify-between items-center flex flex-col p-2">
-            <div class="w-full flex justify-between items-center">
-              <div class="flex flex-col flex-wrap h-full w-1/3">
-                <span class="w-full text-4xl">53</span>
-                <span class="text-gray-600 text-base">Discussions with empty Replied</span>
-              </div>
-              <img src="../assets/img/res.svg" class="w-28" alt />
-            </div>
+
             <div class="h-1 bg-blue-300 w-full"></div>
           </div>
         </q-card-section>
@@ -94,11 +55,38 @@
 </template>
 
 <script>
-
 export default {
   name: "PageIndex",
   data: () => ({
-    users: [],
-  }),
+    dashBoard: [
+      { image: require("../assets/img/post.svg"), data: "2425", title: "Post" },
+      {
+        image: require("../assets/img/comments.svg"),
+        data: "3349",
+        title: "comments"
+      },
+      {
+        image: require("../assets/img/commentByAbwaab.svg"),
+        data: "1670",
+        title: "Comments by Abwaab Team"
+      },
+      {
+        image: require("../assets/img/userComments.svg"),
+        data: "20139",
+        title: "Comments by Users"
+      },
+      {
+        image: require("../assets/img/res.svg"),
+        data: "53",
+        title: "Discussions with empty Replied"
+      }
+    ],
+    users: []
+  })
 };
 </script>
+<style >
+.box-shadow {
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+</style>

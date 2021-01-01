@@ -12,6 +12,7 @@ const mutations = {
   getComments(state, payload) {
 
     state.comments = payload
+    console.log(state.comments)
   },
   firebaseUser(state, payload) {
     state.firebaseUser = payload
