@@ -15,7 +15,7 @@
       title="Treats"
       :data="getData"
       :columns="columns"
-      row-key="name"
+      row-key="id"
       selection="single"
       :selected.sync="selected"
       :pagination.sync="pagination"
@@ -48,6 +48,15 @@ export default {
       selected: [],
       pagination: {},
       columns: [
+        {
+          name: "id",
+          required: true,
+          label: "id",
+          align: "left",
+          field: row => row.id,
+          format: val => `${val}`,
+          sortable: true
+        },
         {
           name: "name",
           required: true,
@@ -525,7 +534,7 @@ export default {
           id: this.comments[index].id,
           time: this.comments[index].created_at,
           name: this.comments[index].user.display_name,
-          comments: this.comments[index].comments
+          comments: this.comments[index].body
         });
       }
       return this.data;
