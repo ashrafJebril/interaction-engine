@@ -20,9 +20,6 @@
       :selected.sync="selected"
       :pagination.sync="pagination"
       :filter="filter"
-      @focusin.native="activateNavigation"
-      @focusout.native="deactivateNavigation"
-      @keydown.native="onKey"
     >
       <template v-slot:top-right>
         <q-input borderless dense debounce="300" v-model="filter" placeholder="Search">
@@ -30,6 +27,88 @@
             <q-icon name="search" />
           </template>
         </q-input>
+        <div class="q-pa-md" style="max-width: 300px">
+          <q-input borderless dense v-model="dateFrom" mask="date" placeholder="From">
+            <template v-slot:append>
+              <q-icon name="event" class="cursor-pointer">
+                <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
+                  <q-date v-model="dateFrom">
+                    <div class="row items-center justify-end">
+                      <q-btn v-close-popup label="Close" color="primary" flat />
+                    </div>
+                  </q-date>
+                </q-popup-proxy>
+              </q-icon>
+            </template>
+          </q-input>
+        </div>
+        <div class="q-pa-md" style="max-width: 300px">
+          <q-input borderless dense v-model="dateTo" mask="date" placeholder="To">
+            <template v-slot:append>
+              <q-icon name="event" class="cursor-pointer">
+                <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
+                  <q-date v-model="dateTo">
+                    <div class="row items-center justify-end">
+                      <q-btn v-close-popup label="Close" color="primary" flat />
+                    </div>
+                  </q-date>
+                </q-popup-proxy>
+              </q-icon>
+            </template>
+          </q-input>
+        </div>
+      </template>
+      <template v-slot:header="props">
+        <q-tr :props="props">
+          <q-th auto-width />
+          <q-th v-for="col in props.cols" :key="col.name" :props="props">{{ col.label }}</q-th>
+        </q-tr>
+      </template>
+
+      <template v-slot:body="props">
+        <q-tr :props="props">
+          <q-td auto-width>
+            <q-btn
+              size="sm"
+              round
+              flat
+              dense
+              @click="props.expand = !props.expand"
+              :icon="props.expand ? 'keyboard_arrow_up' : 'keyboard_arrow_down'"
+            />
+          </q-td>
+          <q-td v-for="col in props.cols" :key="col.name" :props="props">{{ col.value }}</q-td>
+        </q-tr>
+        <q-tr v-show="props.expand" :props="props">
+          <q-td colspan="100%">
+            <div class="flex flex-col">
+              <h4>Comments</h4>
+              <q-list class="h-32 overflow-auto w-1/3" v-if="props.row.comments">
+                <q-item v-for=" comment in props.row.comments" :key="comment.id">
+                  <q-item-section top avatar>
+                    <q-avatar>
+                      <img :src="comment.user.avatar_url" @error="getImage" />
+                    </q-avatar>
+                  </q-item-section>
+
+                  <q-item-section>
+                    <q-item-label>{{ comment.user.display_name }}</q-item-label>
+                    <q-item-label caption>{{ comment.body }}</q-item-label>
+                  </q-item-section>
+                </q-item>
+              </q-list>
+              <div class="w-1/3">
+                <q-input borderless dense placeholder="Reply">
+                  <template v-slot:after>
+                    <q-btn round dense flat icon="send" />
+                  </template>
+                </q-input>
+              </div>
+            </div>
+
+            <!-- <div class="text-left">This is expand slot for row above: {{ props.row }}.</div> -->
+          </q-td>
+        </q-tr>
       </template>
     </q-table>
   </div>
@@ -37,6 +116,7 @@
 
 <script>
 import { mapActions, mapGetters } from "vuex";
+import { date } from "quasar";
 export default {
   created() {
     this.getComments();
@@ -47,38 +127,41 @@ export default {
       filter: "",
       selected: [],
       pagination: {},
+      dateFrom: "",
+      dateTo: "",
       columns: [
         {
           name: "id",
           required: true,
           label: "id",
           align: "left",
-          field: row => row.id,
-          format: val => `${val}`,
-          sortable: true
+          field: (row) => row.id,
+          format: (val) => `${val}`,
+          sortable: true,
         },
         {
           name: "name",
           required: true,
           label: "Name",
           align: "left",
-          field: row => row.name,
-          format: val => `${val}`,
-          sortable: true
+          field: (row) => row.name,
+          format: (val) => `${val}`,
+          sortable: true,
         },
         {
           name: "time",
           align: "center",
           label: "Time",
           field: "time",
-          sortable: true
+          format: (val) => date.formatDate(val, "YYYY/MM/DD hh:mm A"),
+          sortable: true,
         },
         {
           name: "comment",
-          label: "Comments",
-          field: "comments",
-          sortable: true
-        }
+          label: "Comment",
+          field: "comment",
+          sortable: true,
+        },
       ],
       data: [
         //     {
@@ -521,7 +604,7 @@ export default {
         //       calcium: "12%",
         //       iron: "6%"
         //     }
-      ]
+      ],
     };
   },
 
@@ -529,118 +612,31 @@ export default {
     ...mapGetters(["comments"]),
     getData() {
       for (let index = 0; index < this.comments.length; index++) {
-        console.log(this.comments[index]);
         this.data.push({
           id: this.comments[index].id,
           time: this.comments[index].created_at,
           name: this.comments[index].user.display_name,
-          comments: this.comments[index].body
+          comment: this.comments[index].body,
+          comments: this.comments[index].comments,
+          parent_lecture: this.comments[index].parent_lecture,
+          content_info: this.comments[index].content_info,
         });
       }
-      return this.data;
       console.log("d", this.data);
+      console.log("d", this.comments);
+      return this.data;
     },
     tableClass() {
       return this.navigationActive === true ? "shadow-8 no-outline" : void 0;
-    }
+    },
   },
 
   methods: {
     ...mapActions(["getComments"]),
-    activateNavigation() {
-      this.navigationActive = true;
+    getImage(event) {
+      event.target.src = require("../assets/img/abwaab-user-default.png");
     },
-
-    deactivateNavigation() {
-      this.navigationActive = false;
-    },
-
-    onKey(evt) {
-      if (
-        this.navigationActive !== true ||
-        [33, 34, 35, 36, 38, 40].indexOf(evt.keyCode) === -1 ||
-        this.$refs.myTable === void 0
-      ) {
-        return;
-      }
-
-      evt.preventDefault();
-
-      const { computedRowsNumber, computedRows } = this.$refs.myTable;
-
-      if (computedRows.length === 0) {
-        return;
-      }
-
-      const currentIndex =
-        this.selected.length > 0 ? computedRows.indexOf(this.selected[0]) : -1;
-      const currentPage = this.pagination.page;
-      const rowsPerPage =
-        this.pagination.rowsPerPage === 0
-          ? computedRowsNumber
-          : this.pagination.rowsPerPage;
-      const lastIndex = computedRows.length - 1;
-      const lastPage = Math.ceil(computedRowsNumber / rowsPerPage);
-
-      let index = currentIndex;
-      let page = currentPage;
-
-      switch (evt.keyCode) {
-        case 36: // Home
-          page = 1;
-          index = 0;
-          break;
-        case 35: // End
-          page = lastPage;
-          index = rowsPerPage - 1;
-          break;
-        case 33: // PageUp
-          page = currentPage <= 1 ? lastPage : currentPage - 1;
-          if (index < 0) {
-            index = 0;
-          }
-          break;
-        case 34: // PageDown
-          page = currentPage >= lastPage ? 1 : currentPage + 1;
-          if (index < 0) {
-            index = rowsPerPage - 1;
-          }
-          break;
-        case 38: // ArrowUp
-          if (currentIndex <= 0) {
-            page = currentPage <= 1 ? lastPage : currentPage - 1;
-            index = rowsPerPage - 1;
-          } else {
-            index = currentIndex - 1;
-          }
-          break;
-        case 40: // ArrowDown
-          if (currentIndex >= lastIndex) {
-            page = currentPage >= lastPage ? 1 : currentPage + 1;
-            index = 0;
-          } else {
-            index = currentIndex + 1;
-          }
-          break;
-      }
-
-      if (page !== this.pagination.page) {
-        this.pagination = {
-          ...this.pagination,
-          page
-        };
-
-        this.$nextTick(() => {
-          const { computedRows } = this.$refs.myTable;
-          this.selected = [
-            computedRows[Math.min(index, computedRows.length - 1)]
-          ];
-        });
-      } else {
-        this.selected = [computedRows[index]];
-      }
-    }
-  }
+  },
 };
 </script>
 

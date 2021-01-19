@@ -55,34 +55,49 @@
 </template>
 
 <script>
+import { mapActions, mapGetters } from "vuex";
 export default {
   name: "PageIndex",
+  created() {
+    this.counters();
+  },
   data: () => ({
-    dashBoard: [
+    counts: [
       { image: require("../assets/img/post.svg"), data: "2425", title: "Post" },
       {
         image: require("../assets/img/comments.svg"),
         data: "3349",
-        title: "comments"
+        title: "comments",
       },
       {
         image: require("../assets/img/commentByAbwaab.svg"),
         data: "1670",
-        title: "Comments by Abwaab Team"
+        title: "Comments by Abwaab Team",
       },
       {
         image: require("../assets/img/userComments.svg"),
         data: "20139",
-        title: "Comments by Users"
+        title: "Comments by Users",
       },
       {
         image: require("../assets/img/res.svg"),
         data: "53",
-        title: "Discussions with empty Replied"
-      }
+        title: "Discussions with empty Replied",
+      },
     ],
-    users: []
-  })
+    users: [],
+  }),
+  methods: {
+    ...mapActions(["counters"]),
+  },
+  computed: {
+    ...mapGetters(["posts", "commentsCount"]),
+    dashBoard() {
+      this.counts[0].data = this.posts;
+      this.counts[1].data = this.commentsCount;
+      return this.counts;
+    },
+  },
 };
 </script>
 <style >

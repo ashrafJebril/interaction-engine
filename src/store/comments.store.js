@@ -43,38 +43,48 @@ const actions = {
         variables: payload,
       }).then(res => {
         dispatch('getComments', payload.parent_lecture)
+      }).catch(err => {
+        console.log(err)
       })
   },
   async getComments({
-    commit
+    commit,
+    dispatch
   }, payload) {
-    let token = LocalStorage.getItem('tokens') ? LocalStorage.getItem('tokens').access_token : ''
-    const comments = await new graphqlClient(token).query({
-      query: gql `
-            query Comments {
-              comments {
-                id
-                body
-                created_at
-                parent_lecture
-                user {
-                  avatar_url
-                  display_name
-                }
-                comments {
-                  id
-                  user {
-                    avatar_url
-                    display_name
-                  }
-                  body
-                  created_at
-                }
-              }
+    try {
+      let token = LocalStorage.getItem('tokens') ? LocalStorage.getItem('tokens').access_token : ''
+      const comments = await new graphqlClient(token).query({
+        query: gql `
+        query Comments {
+          comments(where: {parent_comment: {_is_null: true}}) {
+            id
+            body
+            created_at
+            parent_lecture
+            content_info
+            user {
+              avatar_url
+              display_name
             }
-          `
-    })
-    commit('getComments', comments.data.comments)
+            comments {
+              id
+              user {
+                avatar_url
+                display_name
+                extra_info
+              }
+              body
+              created_at
+              content_info
+              parent_comment
+            }
+          }
+        }`
+      })
+      commit('getComments', comments.data.comments)
+    } catch (err) {
+      dispatch('logout')
+    }
 
   },
   replyComment({
@@ -102,6 +112,8 @@ const actions = {
         variables: payload,
       }).then(res => {
         dispatch('getComments', payload.parent_lecture)
+      }).catch(err => {
+        console.log(err)
       })
   }
 }

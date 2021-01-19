@@ -27,13 +27,12 @@ const actions = {
       commit('setTokens', res.data)
       setTimeout(() => {
         dispatch('refreshToken')
-      }, 54000)
+      }, 840000)
       this.$router.push({
-        name: 'home',
-        path: '/'
+        name: 'dashboard',
+        path: '/dashboard'
       })
     })
-    //54000
   },
   async refreshToken() {
     try {
@@ -60,6 +59,9 @@ const actions = {
         name: "login",
         path: "/login"
       })
+    }).catch(err => {
+      console.log(err);
+      // window.location.reload();
     })
   }
 }

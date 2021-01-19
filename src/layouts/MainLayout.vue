@@ -41,29 +41,37 @@ const linksData = [
   {
     title: "DashBoard",
     caption: "Abwaab Dash Board",
-    icon: "school",
-    link: "/"
+    icon: "dashboard",
+    link: "/Dashboard",
   },
   {
     title: "Comments Managment",
     caption: "Abwaab Comments Managment",
-    icon: "dehaze",
-    link: "/Comments-Managments"
-  }
+    icon: "school",
+    link: "/Comments-Managments",
+  },
 ];
+import { LocalStorage } from "quasar";
 export default {
   name: "MainLayout",
   components: { EssentialLink },
+  created() {
+    if (LocalStorage.getItem("tokens")) {
+      setTimeout(() => {
+        this.$store.dispatch("refreshToken");
+      }, 840000);
+    }
+  },
   data() {
     return {
       leftDrawerOpen: false,
-      essentialLinks: linksData
+      essentialLinks: linksData,
     };
   },
   methods: {
     logoutUSER() {
       this.$store.dispatch("logout");
-    }
-  }
+    },
+  },
 };
 </script>
