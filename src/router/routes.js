@@ -6,7 +6,12 @@ const routes = [{
     path: '/',
     name: 'home',
     component: () => import('layouts/MainLayout.vue'),
-    children: [{
+    children: [
+      {
+        path:'',
+        redirect:'Dashboard'
+      },
+      {
         path: 'Dashboard',
         name:"dashboard",
         component: () => import('pages/Index.vue')
@@ -20,7 +25,7 @@ const routes = [{
         component: () => import('pages/CommentsManagments.vue')
       },
       {
-        path: 'TA-Managments',
+        path: 'user-Managments',
         component: () => import('pages/TAManagments.vue')
       },
 

@@ -3,11 +3,11 @@
     <div class="flex w-full p-4">
       <q-breadcrumbs>
         <q-breadcrumbs-el to="/" label="Home" icon="home" />
-        <q-breadcrumbs-el label="T.A. Managments" icon="people_outline" />
+        <q-breadcrumbs-el label="User Managments" icon="people_outline" />
       </q-breadcrumbs>
     </div>
     <div class="flex w-full p-4">
-      <h3 class="text-xl">T.A. Filter</h3>
+      <h3 class="text-xl">User Management</h3>
     </div>
     <div class="flex w-full justify-start">
       <div class="w-1/4 px-4">
@@ -40,8 +40,17 @@
           label="Programs"
         />
       </div>
+      <!-- maltiple
+          use-chips
+          stack-label -->
       <div class="w-1/4 px-4">
-        <q-select outlined dense v-model="subjects" :options="getProgramSubjects" label="Subjects" />
+        <q-select
+          outlined
+          dense
+          v-model="subjects"
+          :options="getProgramSubjects"
+          label="Subjects"
+        />
       </div>
     </div>
   </div>

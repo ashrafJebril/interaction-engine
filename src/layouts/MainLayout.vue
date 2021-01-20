@@ -51,10 +51,10 @@ const linksData = [
     link: "/Comments-Managments",
   },
   {
-    title: "T.A. Managment",
-    caption: "Manage Abwaab T.A. ",
+    title: "User Managment",
+    caption: "controll users on Interaction Controlle panel",
     icon: "people_outline",
-    link: "/TA-Managments",
+    link: "/user-Managments",
   },
 ];
 import { LocalStorage } from "quasar";
