@@ -50,6 +50,12 @@ const linksData = [
     icon: "school",
     link: "/Comments-Managments",
   },
+  {
+    title: "T.A. Managment",
+    caption: "Manage Abwaab T.A. ",
+    icon: "people_outline",
+    link: "/TA-Managments",
+  },
 ];
 import { LocalStorage } from "quasar";
 export default {

@@ -19,6 +19,10 @@ const routes = [{
         path: 'Comments-Managments',
         component: () => import('pages/CommentsManagments.vue')
       },
+      {
+        path: 'TA-Managments',
+        component: () => import('pages/TAManagments.vue')
+      },
 
     ],
     beforeEnter: (to, from, next) => {

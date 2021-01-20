@@ -5,6 +5,7 @@ import Vuex from 'vuex'
 import auth from './auth-store'
 import comments from './comments.store'
 import counters from './counters-store'
+import program from './program-store'
 Vue.use(Vuex)
 
 /*
@@ -20,8 +21,9 @@ export default function ( /* { ssrContext } */ ) {
   const Store = new Vuex.Store({
     modules: {
       auth,
+      program,
       comments,
-      counters
+      counters,
     },
 
     // enable strict mode (adds overhead!)
