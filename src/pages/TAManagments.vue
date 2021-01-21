@@ -53,22 +53,61 @@
           label="Subjects"
         />
       </div>
-      <button class="bg-blue-300 p-2 rounded px-4 text-white mr-4" @click="search">Search</button>
+      <q-btn
+        icon="search"
+        color="primary"
+        dense
+        class="mr-4 px-2"
+        @click="search"
+        no-caps
+      >Search</q-btn>
 
-      <button class="bg-blue-300 p-2 rounded px-4 text-white" @click="addTa">Add</button>
+      <q-btn icon="add" dense color="primary" no-caps class="px-2" @click="addTa">Add</q-btn>
     </div>
 
     <div class="p-4">
-      <div class="flex justify-between text-xl mb-4">
+      <!-- <div class="flex justify-between text-xl mb-4">
         <div class="w-1/5">Name</div>
         <div class="w-1/5">Email</div>
         <div class="w-1/5">Country</div>
         <div class="w-1/5">Program</div>
         <div class="w-1/5">Subject</div>
-      </div>
-      <div v-for="(item) in items" :key="item.id">
+      </div>-->
+      <table class="table-auto w-full">
+        <thead>
+          <tr>
+            <th class="text-left">Name</th>
+            <th class="text-left">Email</th>
+            <th class="text-left">Country</th>
+            <th class="text-left">Program</th>
+            <th class="text-left">Subjects</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="(item) in items"
+            :key="item.id"
+            @click="chooseTa=item.id"
+            :class="chooseTa==item.id?'bg-gray-200':''"
+          >
+            <td class="py-4 capitalize">{{item.name}}</td>
+            <td class="py-4">{{item.email}}</td>
+            <td class="py-4">{{item.country}}</td>
+            <td class="py-4">{{item.program}}</td>
+            <td class="py-4">
+              <q-chip
+                :style="`background-color:${sub.bgColor}`"
+                class="text-white"
+                v-for="(sub,index) in item.subject"
+                :key="index"
+              >{{sub.label}}</q-chip>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <!-- <div v-for="(item) in items" :key="item.id">
         <div
-          class="flex justify-between cursor-pointer border-2 mb-2 border-light-blue-500"
+          class="flex justify-between cursor-pointer border-2 border-gray-200 bg-gray-200 p-3"
           @click="chooseTa=item.id"
           :class="chooseTa==item.id?'bg-gray-200':''"
         >
@@ -76,11 +115,9 @@
           <div class="w-1/5">{{item.email}}</div>
           <div class="w-1/5">{{item.country}}</div>
           <div class="w-1/5">{{item.program}}</div>
-          <div class="w-1/5">
-            <div class v-for="(sub,index) in item.subject" :key="index">{{sub.label}}</div>
-          </div>
+          <div class="w-1/5"></div>
         </div>
-      </div>
+      </div>-->
     </div>
   </div>
 </template>
@@ -100,7 +137,7 @@ export default {
           email: "ashraf@abwaab.me",
           country: "",
           program: "",
-          subject: []
+          subject: [],
         },
         {
           id: 2,
@@ -108,7 +145,7 @@ export default {
           email: "abudllah@abwaab.me",
           country: "",
           program: "",
-          subject: []
+          subject: [],
         },
         {
           id: 3,
@@ -116,7 +153,7 @@ export default {
           email: "hamdi@abwaab.me",
           country: "",
           program: "",
-          subject: []
+          subject: [],
         },
         {
           id: 4,
@@ -124,7 +161,7 @@ export default {
           email: "hussien@abwaab.me",
           country: "",
           program: "",
-          subject: []
+          subject: [],
         },
         {
           id: 5,
@@ -132,8 +169,8 @@ export default {
           email: "wajd@abwaab.me",
           country: "",
           program: "",
-          subject: []
-        }
+          subject: [],
+        },
       ],
       program: null,
       Countries: null,
@@ -143,21 +180,21 @@ export default {
           id: 1,
           value: "JO",
           label: "Jordan",
-          icon: require("../assets/flags/Jordan_flag.png")
+          icon: require("../assets/flags/Jordan_flag.png"),
         },
         {
           id: 2,
           value: "PS",
           label: "Palestine",
-          icon: require("../assets/flags/Palestine_flag.png")
+          icon: require("../assets/flags/Palestine_flag.png"),
         },
         {
           id: 3,
           value: "EG",
           label: "Egypt",
-          icon: require("../assets/flags/Egypt_flag.png")
-        }
-      ]
+          icon: require("../assets/flags/Egypt_flag.png"),
+        },
+      ],
     };
   },
   methods: {
@@ -194,19 +231,19 @@ export default {
     clear() {
       this.program = null;
       this.subjects = null;
-    }
+    },
   },
   computed: {
     ...mapGetters(["programs", "ProgramSubjects"]),
     getProgramsByCountry() {
       if (this.Countries) {
         let programs = [];
-        this.programs.filter(program => {
+        this.programs.filter((program) => {
           if (program.country == this.Countries.value) {
             programs.push({
               id: program.id,
               label: program.title_ar,
-              value: program.id
+              value: program.id,
             });
           }
         });
@@ -216,16 +253,17 @@ export default {
     getProgramSubjects() {
       this.subjects = null;
       let subjects = [];
-      this.ProgramSubjects.filter(subject => {
+      this.ProgramSubjects.filter((subject) => {
         subjects.push({
           id: subject.id,
           label: subject.title_ar,
-          value: subject.id
+          value: subject.id,
+          bgColor: subject.bgColor,
         });
       });
       return subjects;
-    }
-  }
+    },
+  },
 };
 </script>
 <style scoped>
