@@ -5,6 +5,7 @@ import {
 
 const state = {
   isUserLoggedIn: false,
+  "X-Hasura-User-Id": {},
   tokens: []
 }
 
@@ -14,6 +15,10 @@ const mutations = {
     state.isUserLoggedIn = true;
     LocalStorage.set('tokens', payload)
     LocalStorage.set('isUserLoggedIn', true)
+  },
+  setXHasuraUserId(state, payload) {
+    state['X-Hasura-User-Id'] = payload;
+    LocalStorage.set('X-Hasura-User-Id', payload)
   }
 }
 
@@ -22,9 +27,9 @@ const actions = {
     commit,
     dispatch
   }, payload) {
-
     axios.post('http://gotrueauthentication-env.eba-srsxfj8j.eu-west-1.elasticbeanstalk.com/token?grant_type=password', payload).then(res => {
       commit('setTokens', res.data)
+      dispatch('userInfo')
       setTimeout(() => {
         dispatch('refreshToken')
       }, 840000)
@@ -34,7 +39,7 @@ const actions = {
       })
     })
   },
-  async refreshToken() {
+  async refreshToken({commit}) {
     try {
 
       axios.post(`http://gotrueauthentication-env.eba-srsxfj8j.eu-west-1.elasticbeanstalk.com/token?grant_type=refresh_token&refresh_token=${LocalStorage.getItem('tokens').refresh_token}`, null).then(res => {
@@ -62,6 +67,19 @@ const actions = {
     }).catch(err => {
       console.log(err);
       // window.location.reload();
+    })
+  },
+  async userInfo({
+    commit
+  }) {
+    const access_token = LocalStorage.getItem('tokens').access_token
+    await axios.get('http://gotrueauthentication-env.eba-srsxfj8j.eu-west-1.elasticbeanstalk.com/user', {
+      headers: {
+        'Content-type': 'application/json',
+        'Authorization': "Bearer " + access_token
+      }
+    }).then(res => {
+      commit('setXHasuraUserId',res.data.user_metadata['X-Hasura-User-Id'])
     })
   }
 }

@@ -1,4 +1,3 @@
-
 <template>
   <div class="w-full h-full">
     <div class="flex w-full p-4">
@@ -10,9 +9,6 @@
 
     <q-table
       ref="myTable"
-      :class="tableClass"
-      tabindex="0"
-      title="Treats"
       :data="getData"
       :columns="columns"
       row-key="id"
@@ -21,43 +17,72 @@
       :pagination.sync="pagination"
       :filter="filter"
     >
-      <template v-slot:top-right>
-        <q-input borderless dense debounce="300" v-model="filter" placeholder="Search">
-          <template v-slot:append>
-            <q-icon name="search" />
-          </template>
-        </q-input>
-        <div class="q-pa-md" style="max-width: 300px">
-          <q-input borderless dense v-model="dateFrom" mask="date" placeholder="From">
-            <template v-slot:append>
-              <q-icon name="event" class="cursor-pointer">
-                <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                  <q-date v-model="dateFrom">
-                    <div class="row items-center justify-end">
-                      <q-btn v-close-popup label="Close" color="primary" flat />
-                    </div>
-                  </q-date>
-                </q-popup-proxy>
-              </q-icon>
-            </template>
-          </q-input>
+      <template v-slot:top>
+        <div class="flex justify-start w-1/5">
+          <span class="text-xl">Comments</span>
         </div>
-        <div class="q-pa-md" style="max-width: 300px">
-          <q-input borderless dense v-model="dateTo" mask="date" placeholder="To">
+        <div class="flex justify-end w-4/5">
+          <q-input
+            class="w-1/5 mx-1"
+            borderless
+            dense
+            debounce="300"
+            v-model="filter"
+            placeholder="Search"
+          >
             <template v-slot:append>
-              <q-icon name="event" class="cursor-pointer">
-                <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                  <q-date v-model="dateTo">
-                    <div class="row items-center justify-end">
-                      <q-btn v-close-popup label="Close" color="primary" flat />
-                    </div>
-                  </q-date>
-                </q-popup-proxy>
-              </q-icon>
+              <q-icon name="search" />
             </template>
           </q-input>
+          <div class="w-1/5 mx-1">
+            <q-input
+              borderless
+              dense
+              clearable
+              readonly
+              @input="filterfromto"
+              v-model="filterDate"
+              placeholder="Filter Range"
+            >
+              <template v-slot:append>
+                <q-icon name="event" @click="clearDateFilter" class="cursor-pointer">
+                  <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
+                    <q-date @range-end="SetDate($event)" range v-model="filterDatePicker">
+                      <div class="row items-center justify-end">
+                        <q-btn v-close-popup label="Close" color="primary" flat />
+                      </div>
+                    </q-date>
+                  </q-popup-proxy>
+                </q-icon>
+              </template>
+            </q-input>
+          </div>
+          <div class="w-1/5 mx-1">
+            <q-select
+              borderless
+              dense
+              v-model="Countries"
+              :options="websiteCountries"
+              @input="filterByCountry"
+              label="Countries"
+            >
+              <template v-slot:selected>
+                <div v-if="Countries">
+                  <q-avatar color="primary" size="15px" text-color="white">
+                    <img :src="Countries.icon" />
+                  </q-avatar>
+                  {{ Countries.label }}
+                </div>
+                <div v-else></div>
+              </template>
+            </q-select>
+          </div>
+          <q-btn flat round color="primary" @click="search" icon="search" />
+          <q-btn flat round color="primary" v-if="showClear" @click="clear" icon="clear" />
+          <q-btn flat round color="primary" :disable="!data.length" @click="exportTable" icon="get_app" />
         </div>
       </template>
+
       <template v-slot:header="props">
         <q-tr :props="props">
           <q-th auto-width />
@@ -98,17 +123,59 @@
                 </q-item>
               </q-list>
               <div class="w-1/3">
-                <q-input borderless dense placeholder="Reply">
+                <q-input v-model="replayText" borderless dense placeholder="Reply">
                   <template v-slot:after>
-                    <q-btn round dense flat icon="send" />
+                    <q-btn @click="sendReply(props.row)" round dense flat icon="send" />
                   </template>
                 </q-input>
               </div>
             </div>
-
-            <!-- <div class="text-left">This is expand slot for row above: {{ props.row }}.</div> -->
           </q-td>
         </q-tr>
+      </template>
+
+      <template v-slot:pagination="scope">
+        <q-btn
+          v-if="scope.pagesNumber > 2"
+          icon="first_page"
+          color="grey-8"
+          round
+          dense
+          flat
+          :disable="isFirstPage"
+          @click="firstPage"
+        />
+
+        <q-btn
+          icon="chevron_left"
+          color="grey-8"
+          round
+          dense
+          flat
+          :disable="isFirstPage"
+          @click="prevPage"
+        />
+
+        <q-btn
+          icon="chevron_right"
+          color="grey-8"
+          round
+          dense
+          flat
+          :disable="isLastPage"
+          @click="nextPage"
+        />
+
+        <q-btn
+          v-if="pagesNumber > 2"
+          icon="last_page"
+          color="grey-8"
+          round
+          dense
+          flat
+          :disable="isLastPage"
+          @click="lastPage"
+        />
       </template>
     </q-table>
   </div>
@@ -116,19 +183,47 @@
 
 <script>
 import { mapActions, mapGetters } from "vuex";
-import { date } from "quasar";
+import { date, LocalStorage, exportFile } from "quasar";
+function wrapCsvValue(val, formatFn) {
+  let formatted = formatFn !== void 0 ? formatFn(val) : val;
+
+  formatted =
+    formatted === void 0 || formatted === null ? "" : String(formatted);
+
+  formatted = formatted.split('"').join('""');
+  /**
+   * Excel accepts \n and \r in strings, but some other CSV parsers do not
+   * Uncomment the next two lines to escape new lines
+   */
+  // .split('\n').join('\\n')
+  // .split('\r').join('\\r')
+
+  return `"${formatted}"`;
+}
 export default {
   created() {
-    this.getComments();
+    this.getComments({
+      limit: this.pagination.rowsPerPage,
+      offset: 10,
+    });
   },
   data() {
     return {
       navigationActive: false,
       filter: "",
       selected: [],
-      pagination: {},
-      dateFrom: "",
-      dateTo: "",
+      pagination: {
+        sortBy: "desc",
+        descending: false,
+        page: 1,
+        rowsPerPage: 10,
+      },
+      filterDate: "",
+      filterDatePicker: { from: "2021/01/01", to: "" },
+      replayText: "",
+      startDate: "",
+      endDate: "",
+      showClear: false,
       columns: [
         {
           name: "id",
@@ -163,482 +258,212 @@ export default {
           sortable: true,
         },
       ],
-      data: [
-        //     {
-        //       id: 1,
-        //       name: "Frozen Yogurt",
-        //       calories: 159,
-        //       fat: 6.0,
-        //       carbs: 24,
-        //       protein: 4.0,
-        //       sodium: 87,
-        //       calcium: "14%",
-        //       iron: "1%"
-        //     },
-        //     {
-        //       id: 2,
-        //       name: "Ice cream sandwich",
-        //       calories: 237,
-        //       fat: 9.0,
-        //       carbs: 37,
-        //       protein: 4.3,
-        //       sodium: 129,
-        //       calcium: "8%",
-        //       iron: "1%"
-        //     },
-        //     {
-        //       id: 3,
-        //       name: "Eclair",
-        //       calories: 262,
-        //       fat: 16.0,
-        //       carbs: 23,
-        //       protein: 6.0,
-        //       sodium: 337,
-        //       calcium: "6%",
-        //       iron: "7%"
-        //     },
-        //     {
-        //       id: 4,
-        //       name: "Cupcake",
-        //       calories: 305,
-        //       fat: 3.7,
-        //       carbs: 67,
-        //       protein: 4.3,
-        //       sodium: 413,
-        //       calcium: "3%",
-        //       iron: "8%"
-        //     },
-        //     {
-        //       id: 5,
-        //       name: "Gingerbread",
-        //       calories: 356,
-        //       fat: 16.0,
-        //       carbs: 49,
-        //       protein: 3.9,
-        //       sodium: 327,
-        //       calcium: "7%",
-        //       iron: "16%"
-        //     },
-        //     {
-        //       id: 6,
-        //       name: "Jelly bean",
-        //       calories: 375,
-        //       fat: 0.0,
-        //       carbs: 94,
-        //       protein: 0.0,
-        //       sodium: 50,
-        //       calcium: "0%",
-        //       iron: "0%"
-        //     },
-        //     {
-        //       id: 7,
-        //       name: "Lollipop",
-        //       calories: 392,
-        //       fat: 0.2,
-        //       carbs: 98,
-        //       protein: 0,
-        //       sodium: 38,
-        //       calcium: "0%",
-        //       iron: "2%"
-        //     },
-        //     {
-        //       id: 8,
-        //       name: "Honeycomb",
-        //       calories: 408,
-        //       fat: 3.2,
-        //       carbs: 87,
-        //       protein: 6.5,
-        //       sodium: 562,
-        //       calcium: "0%",
-        //       iron: "45%"
-        //     },
-        //     {
-        //       id: 9,
-        //       name: "Donut",
-        //       calories: 452,
-        //       fat: 25.0,
-        //       carbs: 51,
-        //       protein: 4.9,
-        //       sodium: 326,
-        //       calcium: "2%",
-        //       iron: "22%"
-        //     },
-        //     {
-        //       id: 10,
-        //       name: "KitKat",
-        //       calories: 518,
-        //       fat: 26.0,
-        //       carbs: 65,
-        //       protein: 7,
-        //       sodium: 54,
-        //       calcium: "12%",
-        //       iron: "6%"
-        //     },
-        //     {
-        //       id: 11,
-        //       name: "Frozen Yogurt-1",
-        //       calories: 159,
-        //       fat: 6.0,
-        //       carbs: 24,
-        //       protein: 4.0,
-        //       sodium: 87,
-        //       calcium: "14%",
-        //       iron: "1%"
-        //     },
-        //     {
-        //       id: 12,
-        //       name: "Ice cream sandwich-1",
-        //       calories: 237,
-        //       fat: 9.0,
-        //       carbs: 37,
-        //       protein: 4.3,
-        //       sodium: 129,
-        //       calcium: "8%",
-        //       iron: "1%"
-        //     },
-        //     {
-        //       id: 13,
-        //       name: "Eclair-1",
-        //       calories: 262,
-        //       fat: 16.0,
-        //       carbs: 23,
-        //       protein: 6.0,
-        //       sodium: 337,
-        //       calcium: "6%",
-        //       iron: "7%"
-        //     },
-        //     {
-        //       id: 14,
-        //       name: "Cupcake-1",
-        //       calories: 305,
-        //       fat: 3.7,
-        //       carbs: 67,
-        //       protein: 4.3,
-        //       sodium: 413,
-        //       calcium: "3%",
-        //       iron: "8%"
-        //     },
-        //     {
-        //       id: 15,
-        //       name: "Gingerbread-1",
-        //       calories: 356,
-        //       fat: 16.0,
-        //       carbs: 49,
-        //       protein: 3.9,
-        //       sodium: 327,
-        //       calcium: "7%",
-        //       iron: "16%"
-        //     },
-        //     {
-        //       id: 16,
-        //       name: "Jelly bean-1",
-        //       calories: 375,
-        //       fat: 0.0,
-        //       carbs: 94,
-        //       protein: 0.0,
-        //       sodium: 50,
-        //       calcium: "0%",
-        //       iron: "0%"
-        //     },
-        //     {
-        //       id: 17,
-        //       name: "Lollipop-1",
-        //       calories: 392,
-        //       fat: 0.2,
-        //       carbs: 98,
-        //       protein: 0,
-        //       sodium: 38,
-        //       calcium: "0%",
-        //       iron: "2%"
-        //     },
-        //     {
-        //       id: 18,
-        //       name: "Honeycomb-1",
-        //       calories: 408,
-        //       fat: 3.2,
-        //       carbs: 87,
-        //       protein: 6.5,
-        //       sodium: 562,
-        //       calcium: "0%",
-        //       iron: "45%"
-        //     },
-        //     {
-        //       id: 19,
-        //       name: "Donut-1",
-        //       calories: 452,
-        //       fat: 25.0,
-        //       carbs: 51,
-        //       protein: 4.9,
-        //       sodium: 326,
-        //       calcium: "2%",
-        //       iron: "22%"
-        //     },
-        //     {
-        //       id: 20,
-        //       name: "KitKat-1",
-        //       calories: 518,
-        //       fat: 26.0,
-        //       carbs: 65,
-        //       protein: 7,
-        //       sodium: 54,
-        //       calcium: "12%",
-        //       iron: "6%"
-        //     },
-        //     {
-        //       id: 21,
-        //       name: "Frozen Yogurt-2",
-        //       calories: 159,
-        //       fat: 6.0,
-        //       carbs: 24,
-        //       protein: 4.0,
-        //       sodium: 87,
-        //       calcium: "14%",
-        //       iron: "1%"
-        //     },
-        //     {
-        //       id: 22,
-        //       name: "Ice cream sandwich-2",
-        //       calories: 237,
-        //       fat: 9.0,
-        //       carbs: 37,
-        //       protein: 4.3,
-        //       sodium: 129,
-        //       calcium: "8%",
-        //       iron: "1%"
-        //     },
-        //     {
-        //       id: 23,
-        //       name: "Eclair-2",
-        //       calories: 262,
-        //       fat: 16.0,
-        //       carbs: 23,
-        //       protein: 6.0,
-        //       sodium: 337,
-        //       calcium: "6%",
-        //       iron: "7%"
-        //     },
-        //     {
-        //       id: 24,
-        //       name: "Cupcake-2",
-        //       calories: 305,
-        //       fat: 3.7,
-        //       carbs: 67,
-        //       protein: 4.3,
-        //       sodium: 413,
-        //       calcium: "3%",
-        //       iron: "8%"
-        //     },
-        //     {
-        //       id: 25,
-        //       name: "Gingerbread-2",
-        //       calories: 356,
-        //       fat: 16.0,
-        //       carbs: 49,
-        //       protein: 3.9,
-        //       sodium: 327,
-        //       calcium: "7%",
-        //       iron: "16%"
-        //     },
-        //     {
-        //       id: 26,
-        //       name: "Jelly bean-2",
-        //       calories: 375,
-        //       fat: 0.0,
-        //       carbs: 94,
-        //       protein: 0.0,
-        //       sodium: 50,
-        //       calcium: "0%",
-        //       iron: "0%"
-        //     },
-        //     {
-        //       id: 27,
-        //       name: "Lollipop-2",
-        //       calories: 392,
-        //       fat: 0.2,
-        //       carbs: 98,
-        //       protein: 0,
-        //       sodium: 38,
-        //       calcium: "0%",
-        //       iron: "2%"
-        //     },
-        //     {
-        //       id: 28,
-        //       name: "Honeycomb-2",
-        //       calories: 408,
-        //       fat: 3.2,
-        //       carbs: 87,
-        //       protein: 6.5,
-        //       sodium: 562,
-        //       calcium: "0%",
-        //       iron: "45%"
-        //     },
-        //     {
-        //       id: 29,
-        //       name: "Donut-2",
-        //       calories: 452,
-        //       fat: 25.0,
-        //       carbs: 51,
-        //       protein: 4.9,
-        //       sodium: 326,
-        //       calcium: "2%",
-        //       iron: "22%"
-        //     },
-        //     {
-        //       id: 30,
-        //       name: "KitKat-2",
-        //       calories: 518,
-        //       fat: 26.0,
-        //       carbs: 65,
-        //       protein: 7,
-        //       sodium: 54,
-        //       calcium: "12%",
-        //       iron: "6%"
-        //     },
-        //     {
-        //       id: 31,
-        //       name: "Frozen Yogurt-3",
-        //       calories: 159,
-        //       fat: 6.0,
-        //       carbs: 24,
-        //       protein: 4.0,
-        //       sodium: 87,
-        //       calcium: "14%",
-        //       iron: "1%"
-        //     },
-        //     {
-        //       id: 32,
-        //       name: "Ice cream sandwich-3",
-        //       calories: 237,
-        //       fat: 9.0,
-        //       carbs: 37,
-        //       protein: 4.3,
-        //       sodium: 129,
-        //       calcium: "8%",
-        //       iron: "1%"
-        //     },
-        //     {
-        //       id: 33,
-        //       name: "Eclair-3",
-        //       calories: 262,
-        //       fat: 16.0,
-        //       carbs: 23,
-        //       protein: 6.0,
-        //       sodium: 337,
-        //       calcium: "6%",
-        //       iron: "7%"
-        //     },
-        //     {
-        //       id: 34,
-        //       name: "Cupcake-3",
-        //       calories: 305,
-        //       fat: 3.7,
-        //       carbs: 67,
-        //       protein: 4.3,
-        //       sodium: 413,
-        //       calcium: "3%",
-        //       iron: "8%"
-        //     },
-        //     {
-        //       id: 35,
-        //       name: "Gingerbread-3",
-        //       calories: 356,
-        //       fat: 16.0,
-        //       carbs: 49,
-        //       protein: 3.9,
-        //       sodium: 327,
-        //       calcium: "7%",
-        //       iron: "16%"
-        //     },
-        //     {
-        //       id: 36,
-        //       name: "Jelly bean-3",
-        //       calories: 375,
-        //       fat: 0.0,
-        //       carbs: 94,
-        //       protein: 0.0,
-        //       sodium: 50,
-        //       calcium: "0%",
-        //       iron: "0%"
-        //     },
-        //     {
-        //       id: 37,
-        //       name: "Lollipop-3",
-        //       calories: 392,
-        //       fat: 0.2,
-        //       carbs: 98,
-        //       protein: 0,
-        //       sodium: 38,
-        //       calcium: "0%",
-        //       iron: "2%"
-        //     },
-        //     {
-        //       id: 38,
-        //       name: "Honeycomb-3",
-        //       calories: 408,
-        //       fat: 3.2,
-        //       carbs: 87,
-        //       protein: 6.5,
-        //       sodium: 562,
-        //       calcium: "0%",
-        //       iron: "45%"
-        //     },
-        //     {
-        //       id: 39,
-        //       name: "Donut-3",
-        //       calories: 452,
-        //       fat: 25.0,
-        //       carbs: 51,
-        //       protein: 4.9,
-        //       sodium: 326,
-        //       calcium: "2%",
-        //       iron: "22%"
-        //     },
-        //     {
-        //       id: 40,
-        //       name: "KitKat-3",
-        //       calories: 518,
-        //       fat: 26.0,
-        //       carbs: 65,
-        //       protein: 7,
-        //       sodium: 54,
-        //       calcium: "12%",
-        //       iron: "6%"
-        //     }
+      data: [],
+      reCoil: false,
+      Countries: "",
+      websiteCountries: [
+        {
+          id: 1,
+          value: "JO",
+          label: "Jordan",
+          icon: require("../assets/flags/Jordan_flag.png"),
+        },
+        {
+          id: 2,
+          value: "PS",
+          label: "Palestine",
+          icon: require("../assets/flags/Palestine_flag.png"),
+        },
+        {
+          id: 3,
+          value: "EG",
+          label: "Egypt",
+          icon: require("../assets/flags/Egypt_flag.png"),
+        },
       ],
     };
   },
-
   computed: {
-    ...mapGetters(["comments"]),
+    ...mapGetters(["comments", "posts"]),
     getData() {
-      for (let index = 0; index < this.comments.length; index++) {
-        this.data.push({
-          id: this.comments[index].id,
-          time: this.comments[index].created_at,
-          name: this.comments[index].user.display_name,
-          comment: this.comments[index].body,
-          comments: this.comments[index].comments,
-          parent_lecture: this.comments[index].parent_lecture,
-          content_info: this.comments[index].content_info,
-        });
+      if (!this.reCoil) {
+        for (let index = 0; index < this.comments.length; index++) {
+          this.data.push({
+            id: this.comments[index].id,
+            time: this.comments[index].created_at,
+            name: this.comments[index].user.display_name,
+            comment: this.comments[index].body,
+            comments: this.comments[index].comments,
+            parent_lecture: this.comments[index].parent_lecture,
+            content_info: this.comments[index].content_info,
+          });
+        }
+        return this.data;
+      } else {
+        return this.data;
       }
-      console.log("d", this.data);
-      console.log("d", this.comments);
-      return this.data;
     },
     tableClass() {
       return this.navigationActive === true ? "shadow-8 no-outline" : void 0;
     },
+    pagesNumber() {
+      return Math.ceil(this.posts / this.pagination.rowsPerPage);
+    },
+    isFirstPage() {
+      return this.pagination.page == 1 ? true : false;
+    },
+    isLastPage() {
+      return this.pagination.page ==
+        Math.ceil(this.posts / this.pagination.rowsPerPage)
+        ? true
+        : false;
+    },
   },
-
   methods: {
-    ...mapActions(["getComments"]),
+    ...mapActions(["getComments", "replyComment"]),
     getImage(event) {
       event.target.src = require("../assets/img/abwaab-user-default.png");
+    },
+    sendReply(parentComment) {
+      const userId = LocalStorage.getItem("X-Hasura-User-Id");
+      let data = {
+        body: this.replayText,
+        parent_lecture: parentComment.parent_lecture,
+        userId: userId,
+        parent_comment: parentComment.id,
+        content_info: parentComment.content_info,
+      };
+      this.replyComment(data);
+      this.replayText = "";
+      this.getComments();
+      this.$forceUpdate();
+    },
+    SetDate(range) {
+      let startDate = (this.startDate = new Date(
+        `${range.from.year}-${range.from.month}-${range.from.day + 1}`
+      ).toGMTString());
+      let endDate = (this.endDate = new Date(
+        `${range.to.year}-${range.to.month}-${range.to.day + 1}`
+      ).toGMTString());
+      this.filterfromto(startDate, endDate);
+      this.filterDate = `From: ${range.from.day}/${range.from.month}/${range.from.year}, To: ${range.to.day}/${range.to.month}/${range.to.year}`;
+    },
+    clearDateFilter() {
+      this.filterDatePicker = { from: "", to: "" };
+      this.reCoil = false;
+    },
+    filterfromto(start, end) {
+      this.showClear = true;
+      return this.data.filter((item) => {
+        let date = new Date(
+          new Date(item.time.split("T")[0]).toGMTString()
+        ).getTime();
+        let startDate = new Date(start).getTime();
+        let endDate = new Date(end).getTime();
+        return date >= startDate && date <= endDate;
+      });
+    },
+    filterByCountry() {
+      this.showClear = true;
+      const cont = this.Countries.value;
+      return this.data.filter((item) => {
+        let country = item.content_info.country;
+        return country == cont;
+      });
+    },
+    search() {
+      if (this.Countries) {
+        this.data = this.filterByCountry();
+      }
+      if (this.startDate != "" && this.endDate != "") {
+        this.data = this.filterfromto(this.startDate, this.endDate);
+      }
+      this.reCoil = true;
+      this.$forceUpdate();
+    },
+    clear() {
+      this.showClear = false;
+      this.clearDateFilter();
+      this.Countries = "";
+      this.filterDate = "";
+    },
+    exportTable() {
+      if (!this.data.length) {
+        this.$q.notify({
+          message: "No Data Found",
+          color: "negative",
+          icon: "warning",
+        });
+        return;
+      }
+      // naive encoding to csv format
+      const content = [this.columns.map((col) => wrapCsvValue(col.label))]
+        .concat(
+          this.data.map((row) =>
+            this.columns
+              .map((col) =>
+                wrapCsvValue(
+                  typeof col.field === "function"
+                    ? col.field(row)
+                    : row[col.field === void 0 ? col.name : col.field],
+                  col.format
+                )
+              )
+              .join(",")
+          )
+        )
+        .join("\r\n");
+
+      const status = exportFile(
+        `Comments-${new Date().getTime()}.csv`,
+        content,
+        "text/csv"
+      );
+
+      if (status !== true) {
+        this.$q.notify({
+          message: "Browser denied file download...",
+          color: "negative",
+          icon: "warning",
+        });
+      }
+    },
+    async nextPage() {
+      this.pagination.page = this.pagination.page + 1;
+      let offset = this.pagination.page * this.pagination.rowsPerPage;
+      await this.getComments({
+        limit: this.pagination.rowsPerPage,
+        offset: offset,
+      });
+      this.reCoil = false;
+      this.$forceUpdate();
+    },
+    async prevPage() {
+      this.pagination.page = this.pagination.page - 1;
+      let offset = this.pagination.page * this.pagination.rowsPerPage;
+      await this.getComments({
+        limit: this.pagination.rowsPerPage,
+        offset: offset,
+      });
+      this.reCoil = false;
+      this.$forceUpdate();
+    },
+    async lastPage() {
+      await this.getComments({
+        limit: this.pagination.rowsPerPage,
+        offset: Math.ceil(this.posts / this.pagination.rowsPerPage),
+      });
+      this.reCoil = false;
+      this.$forceUpdate();
+    },
+    async firstPage() {
+      await this.getComments({
+        limit: this.pagination.rowsPerPage,
+        offset: 10,
+      });
+      this.reCoil = false;
+      this.$forceUpdate();
     },
   },
 };
 </script>
-
-<style>
-</style>

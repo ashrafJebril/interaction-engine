@@ -1,6 +1,6 @@
 <template>
   <q-layout view="lHh Lpr lFf">
-    <q-header class="bg-smoke text-black pb-2">
+    <q-header class="bg-smoke dark:bg-gray-800 text-black pb-2">
       <div class="h-1 w-full bg-gradient-to-r from-blue-500 via-green-200 to-yellow-400 mb-1"></div>
       <q-toolbar>
         <q-btn
@@ -16,7 +16,7 @@
           <img src="../assets/img/logo.png" class="w-12" alt srcset />
         </q-toolbar-title>
 
-        <q-btn :click="logoutUSER" round flat icon="exit_to_app" />
+        <q-btn @click="logoutUSER" round flat icon="exit_to_app" />
       </q-toolbar>
     </q-header>
 
@@ -53,7 +53,7 @@ const linksData = [
   {
     title: "User Managment",
     caption: "controll users on Interaction Controlle panel",
-    icon: "people_outline",
+    icon: "group",
     link: "/user-Managments",
   },
 ];

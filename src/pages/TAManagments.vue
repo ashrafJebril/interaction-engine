@@ -3,7 +3,7 @@
     <div class="flex w-full p-4">
       <q-breadcrumbs>
         <q-breadcrumbs-el to="/" label="Home" icon="home" />
-        <q-breadcrumbs-el label="User Managments" icon="people_outline" />
+        <q-breadcrumbs-el label="User Managments" icon="group" />
       </q-breadcrumbs>
     </div>
     <div class="flex w-full p-4">
@@ -40,9 +40,6 @@
           label="Programs"
         />
       </div>
-      <!-- maltiple
-          use-chips
-      stack-label-->
       <div class="w-1/4 px-4">
         <q-select
           outlined
@@ -66,13 +63,6 @@
     </div>
 
     <div class="p-4">
-      <!-- <div class="flex justify-between text-xl mb-4">
-        <div class="w-1/5">Name</div>
-        <div class="w-1/5">Email</div>
-        <div class="w-1/5">Country</div>
-        <div class="w-1/5">Program</div>
-        <div class="w-1/5">Subject</div>
-      </div>-->
       <table class="table-auto w-full">
         <thead>
           <tr>
@@ -105,19 +95,6 @@
           </tr>
         </tbody>
       </table>
-      <!-- <div v-for="(item) in items" :key="item.id">
-        <div
-          class="flex justify-between cursor-pointer border-2 border-gray-200 bg-gray-200 p-3"
-          @click="chooseTa=item.id"
-          :class="chooseTa==item.id?'bg-gray-200':''"
-        >
-          <div class="w-1/5">{{item.name}}</div>
-          <div class="w-1/5">{{item.email}}</div>
-          <div class="w-1/5">{{item.country}}</div>
-          <div class="w-1/5">{{item.program}}</div>
-          <div class="w-1/5"></div>
-        </div>
-      </div>-->
     </div>
   </div>
 </template>

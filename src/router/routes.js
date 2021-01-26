@@ -17,10 +17,6 @@ const routes = [{
         component: () => import('pages/Index.vue')
       },
       {
-        path: 'Discussion-Board',
-        component: () => import('pages/DiscussionBoard.vue')
-      },
-      {
         path: 'Comments-Managments',
         component: () => import('pages/CommentsManagments.vue')
       },

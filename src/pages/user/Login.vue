@@ -48,7 +48,7 @@
       </div>
     </div>
     <div class="lg:flex items-center justify-center bg-blue-100 flex-1 h-screen">
-      <div class="max-w-xs transform duration-200 hover:scale-110">
+      <div class="max-w-xs">
         <img src="../../assets/img/Access.svg" alt />
       </div>
     </div>

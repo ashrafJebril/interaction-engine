@@ -10,9 +10,7 @@ const state = {
 
 const mutations = {
   getComments(state, payload) {
-
     state.comments = payload
-    console.log(state.comments)
   },
   firebaseUser(state, payload) {
     state.firebaseUser = payload
@@ -55,8 +53,8 @@ const actions = {
       let token = LocalStorage.getItem('tokens') ? LocalStorage.getItem('tokens').access_token : ''
       const comments = await new graphqlClient(token).query({
         query: gql `
-        query Comments {
-          comments(where: {parent_comment: {_is_null: true}}) {
+        query Comments($limit: Int, $offset: Int) {
+          comments(where: {parent_comment: {_is_null: true}}, limit: $limit, offset: $offset) {
             id
             body
             created_at
@@ -79,8 +77,12 @@ const actions = {
               parent_comment
             }
           }
-        }`
+        }
+
+`,
+        variables: payload
       })
+
       commit('getComments', comments.data.comments)
     } catch (err) {
       dispatch('logout')
@@ -95,8 +97,8 @@ const actions = {
       .mutate({
         // Query
         mutation: gql `
-        mutation MyMutation($body: String!, $parent_lecture: Int!, $parent_comment: Int, $userId: Int) {
-          insert_comments_one(object: {body: $body, parent_lecture: $parent_lecture, parent_comment: $parent_comment, user_id: $userId}) {
+        mutation MyMutation($body: String!, $parent_lecture: Int!, $userId: Int, $parent_comment: Int,$content_info: jsonb) {
+          insert_comments_one(object: {body: $body, parent_lecture: $parent_lecture, user_id: $userId, parent_comment: $parent_comment, content_info: $content_info}) {
             body
             created_at
             user {
