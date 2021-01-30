@@ -6,6 +6,7 @@ import auth from './auth-store'
 import comments from './comments.store'
 import counters from './counters-store'
 import program from './program-store'
+import users from './user-store'
 Vue.use(Vuex)
 
 /*
@@ -21,6 +22,7 @@ export default function ( /* { ssrContext } */ ) {
   const Store = new Vuex.Store({
     modules: {
       auth,
+      users,
       program,
       comments,
       counters,

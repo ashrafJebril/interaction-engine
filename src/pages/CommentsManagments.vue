@@ -16,6 +16,7 @@
       :selected.sync="selected"
       :pagination.sync="pagination"
       :filter="filter"
+      :rows-per-page-options="[10, 50, 100, 200, 500]"
     >
       <template v-slot:top>
         <div class="flex justify-start w-1/5">
@@ -79,7 +80,14 @@
           </div>
           <q-btn flat round color="primary" @click="search" icon="search" />
           <q-btn flat round color="primary" v-if="showClear" @click="clear" icon="clear" />
-          <q-btn flat round color="primary" :disable="!data.length" @click="exportTable" icon="get_app" />
+          <q-btn
+            flat
+            round
+            color="primary"
+            :disable="!data.length"
+            @click="exportTable"
+            icon="get_app"
+          />
         </div>
       </template>
 
@@ -204,7 +212,7 @@ export default {
   created() {
     this.getComments({
       limit: this.pagination.rowsPerPage,
-      offset: 10,
+      offset: 0
     });
   },
   data() {
@@ -216,7 +224,7 @@ export default {
         sortBy: "desc",
         descending: false,
         page: 1,
-        rowsPerPage: 10,
+        rowsPerPage: 10
       },
       filterDate: "",
       filterDatePicker: { from: "2021/01/01", to: "" },
@@ -230,33 +238,33 @@ export default {
           required: true,
           label: "id",
           align: "left",
-          field: (row) => row.id,
-          format: (val) => `${val}`,
-          sortable: true,
+          field: row => row.id,
+          format: val => `${val}`,
+          sortable: true
         },
         {
           name: "name",
           required: true,
           label: "Name",
           align: "left",
-          field: (row) => row.name,
-          format: (val) => `${val}`,
-          sortable: true,
+          field: row => row.name,
+          format: val => `${val}`,
+          sortable: true
         },
         {
           name: "time",
           align: "center",
           label: "Time",
           field: "time",
-          format: (val) => date.formatDate(val, "YYYY/MM/DD hh:mm A"),
-          sortable: true,
+          format: val => date.formatDate(val, "YYYY/MM/DD hh:mm A"),
+          sortable: true
         },
         {
           name: "comment",
           label: "Comment",
           field: "comment",
-          sortable: true,
-        },
+          sortable: true
+        }
       ],
       data: [],
       reCoil: false,
@@ -266,21 +274,21 @@ export default {
           id: 1,
           value: "JO",
           label: "Jordan",
-          icon: require("../assets/flags/Jordan_flag.png"),
+          icon: require("../assets/flags/Jordan_flag.png")
         },
         {
           id: 2,
           value: "PS",
           label: "Palestine",
-          icon: require("../assets/flags/Palestine_flag.png"),
+          icon: require("../assets/flags/Palestine_flag.png")
         },
         {
           id: 3,
           value: "EG",
           label: "Egypt",
-          icon: require("../assets/flags/Egypt_flag.png"),
-        },
-      ],
+          icon: require("../assets/flags/Egypt_flag.png")
+        }
+      ]
     };
   },
   computed: {
@@ -295,7 +303,7 @@ export default {
             comment: this.comments[index].body,
             comments: this.comments[index].comments,
             parent_lecture: this.comments[index].parent_lecture,
-            content_info: this.comments[index].content_info,
+            content_info: this.comments[index].content_info
           });
         }
         return this.data;
@@ -317,7 +325,7 @@ export default {
         Math.ceil(this.posts / this.pagination.rowsPerPage)
         ? true
         : false;
-    },
+    }
   },
   methods: {
     ...mapActions(["getComments", "replyComment"]),
@@ -331,7 +339,7 @@ export default {
         parent_lecture: parentComment.parent_lecture,
         userId: userId,
         parent_comment: parentComment.id,
-        content_info: parentComment.content_info,
+        content_info: parentComment.content_info
       };
       this.replyComment(data);
       this.replayText = "";
@@ -354,7 +362,7 @@ export default {
     },
     filterfromto(start, end) {
       this.showClear = true;
-      return this.data.filter((item) => {
+      return this.data.filter(item => {
         let date = new Date(
           new Date(item.time.split("T")[0]).toGMTString()
         ).getTime();
@@ -366,7 +374,7 @@ export default {
     filterByCountry() {
       this.showClear = true;
       const cont = this.Countries.value;
-      return this.data.filter((item) => {
+      return this.data.filter(item => {
         let country = item.content_info.country;
         return country == cont;
       });
@@ -392,16 +400,16 @@ export default {
         this.$q.notify({
           message: "No Data Found",
           color: "negative",
-          icon: "warning",
+          icon: "warning"
         });
         return;
       }
       // naive encoding to csv format
-      const content = [this.columns.map((col) => wrapCsvValue(col.label))]
+      const content = [this.columns.map(col => wrapCsvValue(col.label))]
         .concat(
-          this.data.map((row) =>
+          this.data.map(row =>
             this.columns
-              .map((col) =>
+              .map(col =>
                 wrapCsvValue(
                   typeof col.field === "function"
                     ? col.field(row)
@@ -424,16 +432,16 @@ export default {
         this.$q.notify({
           message: "Browser denied file download...",
           color: "negative",
-          icon: "warning",
+          icon: "warning"
         });
       }
     },
     async nextPage() {
-      this.pagination.page = this.pagination.page + 1;
       let offset = this.pagination.page * this.pagination.rowsPerPage;
+      this.pagination.page = this.pagination.page + 1;
       await this.getComments({
         limit: this.pagination.rowsPerPage,
-        offset: offset,
+        offset: offset
       });
       this.reCoil = false;
       this.$forceUpdate();
@@ -443,7 +451,7 @@ export default {
       let offset = this.pagination.page * this.pagination.rowsPerPage;
       await this.getComments({
         limit: this.pagination.rowsPerPage,
-        offset: offset,
+        offset: offset
       });
       this.reCoil = false;
       this.$forceUpdate();
@@ -451,19 +459,20 @@ export default {
     async lastPage() {
       await this.getComments({
         limit: this.pagination.rowsPerPage,
-        offset: Math.ceil(this.posts / this.pagination.rowsPerPage),
+        offset: Math.ceil(this.posts / this.pagination.rowsPerPage) - 10
       });
       this.reCoil = false;
       this.$forceUpdate();
     },
     async firstPage() {
+      this.data = []
       await this.getComments({
         limit: this.pagination.rowsPerPage,
-        offset: 10,
+        offset: 0
       });
       this.reCoil = false;
       this.$forceUpdate();
-    },
-  },
+    }
+  }
 };
 </script>

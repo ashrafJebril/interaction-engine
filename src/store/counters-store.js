@@ -59,12 +59,9 @@ const actions = {
           comments(where: {parent_comment: {_is_null: false}}) {
             id
           }
-        }
-
-
-            `
+        }`
       }).subscribe(res => {
-        
+
         commit('getCommentsCount', res.data.comments.length)
       })
     } catch (err) {

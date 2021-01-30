@@ -75,20 +75,20 @@
         </thead>
         <tbody>
           <tr
-            v-for="(item) in items"
+            v-for="(item) in getData"
             :key="item.id"
             @click="chooseTa=item.id"
             :class="chooseTa==item.id?'bg-gray-200':''"
           >
-            <td class="py-4 capitalize">{{item.name}}</td>
-            <td class="py-4">{{item.email}}</td>
-            <td class="py-4">{{item.country}}</td>
-            <td class="py-4">{{item.program}}</td>
-            <td class="py-4">
+            <td class="py-4 capitalize">{{item.display_name}}</td>
+            <td class="py-4">{{item.username}}</td>
+            <td class="py-4">{{item.extra_info.country}}</td>
+            <td class="py-4">{{item.extra_info.program}}</td>
+            <td class="py-4" v-if="item.extra_info">
               <q-chip
                 :style="`background-color:${sub.bgColor}`"
                 class="text-white"
-                v-for="(sub,index) in item.subject"
+                v-for="(sub,index) in item.extra_info.subjects"
                 :key="index"
               >{{sub.label}}</q-chip>
             </td>
@@ -103,6 +103,7 @@ import { mapActions, mapGetters } from "vuex";
 export default {
   created() {
     this.getPrograms();
+    this.getTeacherAssistant();
   },
   data() {
     return {
@@ -175,33 +176,58 @@ export default {
     };
   },
   methods: {
+    ...mapActions(["getPrograms", "getProgramSubject", "getTeacherAssistant", "assignTA"]),
     search() {
       var searchResult = [];
-      for (let index = 0; index < this.items.length; index++) {
-        console.log("asfa", this.items[index].program, this.program.label);
-
-        if (this.items[index].program === this.program.label) {
-          console.log("yesss");
-          searchResult.push(this.items[index]);
+      debugger
+      if(this.Countries){
+        for (let index = 0; index < this.items.length; index++) {
+          if (this.items[index].extra_info.countryId === this.Countries.value) {
+            searchResult.push(this.items[index]);
+          }
         }
+        this.items = searchResult;
+      }else if(this.program){
+        for (let index = 0; index < this.items.length; index++) {
+          if (this.items[index].extra_info.programId === this.program.value) {
+            searchResult.push(this.items[index]);
+          }
+        }
+        this.items = searchResult;
+      }else{
+        for (let index = 0; index < this.items.length; index++) {
+          if (this.items[index].extra_info.subjects.id === this.subjects.value) {
+            searchResult.push(this.items[index]);
+          }
+        }
+        this.items = searchResult;
       }
-      this.items = searchResult;
-      console.log("ite", this.items);
+      if(!this.items.length){
+        this.Countries = ""
+        this.program = ""
+        this.subjects = ""
+        this.$q.notify({
+          message: "No Data Found",
+          color: "negative",
+          icon: "warning"
+        });
+        this.$forceUpdate()
+        return;
+      }
     },
     addTa() {
-      console.log("tsat");
-      for (let index = 0; index < this.items.length; index++) {
-        if (this.items[index].id == this.chooseTa) {
-          this.items[index].country = this.Countries.label;
-          this.items[index].program = this.program.label;
-
-          this.items[index].subject = this.subjects;
-          console.log("this.items[index].subject", this.items[index].subject);
+      let data = {
+        id: this.chooseTa,
+        extra_info:{
+          country: this.Countries.label,
+          countryId: this.Countries.value,
+          program: this.program.label,
+          programId:this.program.value,
+          subjects: this.subjects
         }
       }
+      this.assignTA(data)
     },
-
-    ...mapActions(["getPrograms", "getProgramSubject"]),
     getSubjects() {
       this.getProgramSubject(this.program.value);
     },
@@ -211,7 +237,7 @@ export default {
     },
   },
   computed: {
-    ...mapGetters(["programs", "ProgramSubjects"]),
+    ...mapGetters(["programs", "ProgramSubjects", "teaching_assistant"]),
     getProgramsByCountry() {
       if (this.Countries) {
         let programs = [];
@@ -240,6 +266,9 @@ export default {
       });
       return subjects;
     },
+    getData(){
+      return this.items =  this.teaching_assistant;
+    }
   },
 };
 </script>

@@ -18,33 +18,6 @@ const mutations = {
 }
 
 const actions = {
-  send({
-    commit,
-    dispatch
-  }, payload) {
-    let token = LocalStorage.getItem('tokens') ? LocalStorage.getItem('tokens').access_token : ''
-    new graphqlClient(token)
-      .mutate({
-        // Query
-        mutation: gql `
-        mutation MyMutation($body: String!, $parent_lecture: Int!, $userId: Int) {
-          insert_comments_one(object: {body: $body, parent_lecture: $parent_lecture, user_id: $userId}) {
-            body
-            created_at
-            user {
-              avatar_url
-              display_name
-            }
-          }
-        }`,
-        // Parameters
-        variables: payload,
-      }).then(res => {
-        dispatch('getComments', payload.parent_lecture)
-      }).catch(err => {
-        console.log(err)
-      })
-  },
   async getComments({
     commit,
     dispatch

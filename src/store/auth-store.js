@@ -39,7 +39,9 @@ const actions = {
       })
     })
   },
-  async refreshToken({commit}) {
+  async refreshToken({
+    commit
+  }) {
     try {
 
       axios.post(`http://gotrueauthentication-env.eba-srsxfj8j.eu-west-1.elasticbeanstalk.com/token?grant_type=refresh_token&refresh_token=${LocalStorage.getItem('tokens').refresh_token}`, null).then(res => {
@@ -73,13 +75,15 @@ const actions = {
     commit
   }) {
     const access_token = LocalStorage.getItem('tokens').access_token
-    await axios.get('http://gotrueauthentication-env.eba-srsxfj8j.eu-west-1.elasticbeanstalk.com/user', {
-      headers: {
-        'Content-type': 'application/json',
-        'Authorization': "Bearer " + access_token
-      }
+    let headers = {
+      "Access-Control-Allow-Origin": "*",
+      'Content-type': 'application/json',
+      'x-access-token': access_token
+    }
+    await axios.post('https://j0mxal47ub.execute-api.eu-west-1.amazonaws.com/interaction/syncuser', null, {
+      headers: headers
     }).then(res => {
-      commit('setXHasuraUserId',res.data.user_metadata['X-Hasura-User-Id'])
+      commit('setXHasuraUserId', res.data.user_metadata['X-Hasura-User-Id'])
     })
   }
 }
