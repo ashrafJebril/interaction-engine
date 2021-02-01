@@ -27,7 +27,7 @@ const actions = {
       const comments = await new graphqlClient(token).query({
         query: gql `
         query Comments($limit: Int, $offset: Int) {
-          comments(where: {parent_comment: {_is_null: true}}, limit: $limit, offset: $offset) {
+          comments(where: {parent_comment: {_is_null: true}}, limit: $limit, offset: $offset, order_by: {id: desc}) {
             id
             body
             created_at

@@ -100,6 +100,7 @@
 
       <template v-slot:body="props">
         <q-tr :props="props">
+
           <q-td auto-width>
             <q-btn
               size="sm"
@@ -243,6 +244,24 @@ export default {
           sortable: true
         },
         {
+          name: "country",
+          required: true,
+          label: "Country",
+          align: "left",
+          field: row => row.country,
+          format: val => `${val}`,
+          sortable: true
+        },
+        {
+          name: "lesson",
+          required: true,
+          label: "Lesson Title",
+          align: "left",
+          field: row => row.lesson,
+          format: val => `${val}`,
+          sortable: true
+        },
+        {
           name: "name",
           required: true,
           label: "Name",
@@ -251,6 +270,7 @@ export default {
           format: val => `${val}`,
           sortable: true
         },
+
         {
           name: "time",
           align: "center",
@@ -303,7 +323,9 @@ export default {
             comment: this.comments[index].body,
             comments: this.comments[index].comments,
             parent_lecture: this.comments[index].parent_lecture,
-            content_info: this.comments[index].content_info
+            content_info: this.comments[index].content_info,
+            country: this.comments[index].content_info.country,
+            lesson: this.comments[index].content_info.lesson_name,
           });
         }
         return this.data;
@@ -394,6 +416,10 @@ export default {
       this.clearDateFilter();
       this.Countries = "";
       this.filterDate = "";
+      this.startDate = "";
+      this.endDate = "";
+      this.getComments()
+      this.$forceUpdate()
     },
     exportTable() {
       if (!this.data.length) {
@@ -470,6 +496,7 @@ export default {
         limit: this.pagination.rowsPerPage,
         offset: 0
       });
+      console.log(this.data)
       this.reCoil = false;
       this.$forceUpdate();
     }
