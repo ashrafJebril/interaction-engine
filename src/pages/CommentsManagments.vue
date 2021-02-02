@@ -25,7 +25,7 @@
         <div class="flex justify-end w-4/5">
           <q-input
             class="w-1/5 mx-1"
-            borderless
+            outlined
             dense
             debounce="300"
             v-model="filter"
@@ -37,7 +37,7 @@
           </q-input>
           <div class="w-1/5 mx-1">
             <q-input
-              borderless
+              outlined
               dense
               clearable
               readonly
@@ -60,7 +60,7 @@
           </div>
           <div class="w-1/5 mx-1">
             <q-select
-              borderless
+              outlined
               dense
               v-model="Countries"
               :options="websiteCountries"
@@ -121,12 +121,12 @@
                 <q-item v-for=" comment in props.row.comments" :key="comment.id">
                   <q-item-section top avatar>
                     <q-avatar>
-                      <img :src="comment.user.avatar_url" @error="getImage" />
+                      <img :src="comment.user && comment.user.avatar_url" @error="getImage" />
                     </q-avatar>
                   </q-item-section>
 
                   <q-item-section>
-                    <q-item-label>{{ comment.user.display_name }}</q-item-label>
+                    <q-item-label>{{ comment.user && comment.user.display_name }}</q-item-label>
                     <q-item-label caption>{{ comment.body }}</q-item-label>
                   </q-item-section>
                 </q-item>
@@ -365,7 +365,10 @@ export default {
       };
       this.replyComment(data);
       this.replayText = "";
-      this.getComments();
+      this.getComments({
+        limit: this.pagination.rowsPerPage,
+        offset: 0
+      });
       this.$forceUpdate();
     },
     SetDate(range) {
@@ -418,7 +421,10 @@ export default {
       this.filterDate = "";
       this.startDate = "";
       this.endDate = "";
-      this.getComments()
+      this.getComments({
+        limit: this.pagination.rowsPerPage,
+        offset: 0
+      })
       this.$forceUpdate()
     },
     exportTable() {

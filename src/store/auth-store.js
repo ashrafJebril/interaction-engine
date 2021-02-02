@@ -72,7 +72,8 @@ const actions = {
     })
   },
   async userInfo({
-    commit
+    commit,
+    dispatch
   }) {
     const access_token = LocalStorage.getItem('tokens').access_token
     let headers = {
@@ -83,7 +84,13 @@ const actions = {
     await axios.post('https://j0mxal47ub.execute-api.eu-west-1.amazonaws.com/interaction/syncuser', null, {
       headers: headers
     }).then(res => {
-      commit('setXHasuraUserId', res.data.user_metadata['X-Hasura-User-Id'])
+      console.log(res)
+      if (res.data.data['X-Hasura-Role'] == 'student') {
+        dispatch('logout')
+      } else {
+        dispatch('userData', res.data.data['X-Hasura-User-Id'])
+        commit('setXHasuraUserId', res.data.data['X-Hasura-User-Id'])
+      }
     })
   }
 }

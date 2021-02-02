@@ -61,6 +61,32 @@ const actions = {
       }).catch(err => {
         console.log(err)
       })
+  },
+  async userData({
+    commit,
+    dispatch
+  }, payload) {
+    console.log(payload)
+    let token = LocalStorage.getItem('tokens') ? LocalStorage.getItem('tokens').access_token : ''
+    new graphqlClient(token)
+      .query({
+        // Query
+        query: gql `
+        query userData($id: Int!) {
+          users(where: {id: {_eq: $id}}) {
+            extra_info
+          }
+        }
+          `,
+        // Parameters
+        variables: {
+          id: payload
+        },
+      }).then(res => {
+        console.log(res)
+      }).catch(err => {
+        console.log(err)
+      })
   }
 }
 
