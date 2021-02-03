@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { Notify } from 'quasar'
 import {
   LocalStorage
 } from 'quasar'
@@ -86,6 +87,23 @@ const actions = {
     }).then(res => {
       console.log(res)
       if (res.data.data['X-Hasura-Role'] == 'student') {
+        Notify.create({
+          color: "negative",
+          icon: "warning",
+          progress: true,
+          textColor: 'white',
+          timeout: 4000,
+          classes: "text-center text-xl",
+          position: "bottom",
+          message: "You are not allowed to login here."
+        })
+        this.$router.push({
+          name: "login",
+          path: "/login"
+        })
+        setTimeout(()=>{
+          location.href="https://abwaab.me"
+        },4000)
         dispatch('logout')
       } else {
         dispatch('userData', res.data.data['X-Hasura-User-Id'])

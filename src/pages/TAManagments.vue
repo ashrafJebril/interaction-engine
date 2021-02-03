@@ -57,45 +57,191 @@
         class="mr-4 px-2"
         @click="search"
         no-caps
-      >Search</q-btn>
+        >Search</q-btn
+      >
 
-      <q-btn icon="add" dense color="primary" no-caps class="px-2" @click="addTa">Add</q-btn>
     </div>
 
-    <div class="p-4">
-      <table class="table-auto w-full">
+    <div class="p-4 flex">
+      <table class="table-auto w-1/2">
         <thead>
           <tr>
             <th class="text-left">Name</th>
             <th class="text-left">Email</th>
-            <th class="text-left">Country</th>
-            <th class="text-left">Program</th>
-            <th class="text-left">Subjects</th>
+            <th class="text-left">Type</th>
           </tr>
         </thead>
         <tbody>
           <tr
-            v-for="(item) in getData"
+            v-for="item in getData"
             :key="item.id"
-            @click="chooseTa=item.id"
-            :class="chooseTa==item.id?'bg-gray-200':''"
+            @click="chooseTa = item.id"
+            :class="chooseTa == item.id ? 'bg-gray-200' : ''"
           >
-            <td class="py-4 capitalize">{{item.display_name}}</td>
-            <td class="py-4">{{item.username}}</td>
-            <td class="py-4">{{item.extra_info.country}}</td>
-            <td class="py-4">{{item.extra_info.program}}</td>
-            <td class="py-4" v-if="item.extra_info">
-              <q-chip
-                :style="`background-color:${sub.bgColor}`"
-                class="text-white"
-                v-for="(sub,index) in item.extra_info.subjects"
-                :key="index"
-              >{{sub.label}}</q-chip>
+            <td class="py-4 capitalize">{{ item.display_name }}</td>
+            <td class="py-4">{{ item.username }}</td>
+            <td class="py-4">
+              {{ item.user_type == "teaching_assistant" ? "TA" : "Teacher" }}
             </td>
           </tr>
         </tbody>
       </table>
+      <div class="w-1/2">
+        <q-card v-if="chooseTa" flat bordered class="my-card mx-2 bg-grey-1">
+          <q-item>
+            <q-item-section avatar>
+              <q-avatar>
+                <img
+                  :src="selectedUser && selectedUser.avatar_url"
+                  @error="getImage"
+                />
+              </q-avatar>
+            </q-item-section>
+
+            <q-item-section>
+              <q-item-label>{{
+                selectedUser && selectedUser.display_name
+              }}</q-item-label>
+              <q-item-label caption>
+                {{ selectedUser && selectedUser.username }}
+              </q-item-label>
+            </q-item-section>
+          </q-item>
+
+          <q-card-section>
+            <table class="table-auto w-full">
+              <thead>
+                <tr>
+                  <th class="text-center">Country</th>
+                  <th class="text-center">Program</th>
+                  <th class="text-center">Subjects</th>
+                  <th class="text-center">Can Delete</th>
+                  <th class="text-center"></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="py-4 text-center">
+                    {{ selectedUser.extra_info.country }}
+                  </td>
+                  <td class="py-4 text-center">
+                    {{ selectedUser.extra_info.program }}
+                  </td>
+                  <td class="py-4 text-center" v-if="selectedUser.extra_info">
+                    <q-chip
+                      :style="`background-color:${sub.bgColor}`"
+                      class="text-white"
+                      v-for="(sub, index) in selectedUser.extra_info.subjects"
+                      :key="index"
+                      >{{ sub.label }}</q-chip
+                    >
+                  </td>
+                  <td class="text-center">
+                    <q-icon
+                    v-if="selectedUser.extra_info.canDelete"
+                      name="check_circle_outline"
+                      class="text-green"
+                      style="font-size: 2em"
+                    ></q-icon>
+                    <q-icon
+                      v-else
+                      class="text-red"
+                      name="highlight_off"
+                      style="font-size: 2em"
+                    ></q-icon>
+                  </td>
+                  <td>
+                    <q-btn
+                      icon="settings"
+                      @click="edit = !edit"
+                      flat
+                      round
+                      color="primary"
+                    ></q-btn>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </q-card-section>
+        </q-card>
+      </div>
     </div>
+    <q-dialog v-model="edit">
+      <q-card style="width: 400px; max-width: 80vw">
+        <q-card-section>
+          <div class="text-h6">Edit</div>
+        </q-card-section>
+
+        <q-card-section class="q-pt-none">
+          <div class="flex flex-col w-full justify-start">
+            <div class="w-full py-2">
+              <q-select
+                @input="clear"
+                outlined
+                v-model="selectedCountries"
+                :options="websiteCountries"
+                label="Countries"
+                :hint="`Current Country: ${
+                  selectedUser && selectedUser.extra_info.country
+                }`"
+              >
+                <template v-slot:selected>
+                  <div v-if="selectedCountries">
+                    <q-avatar color="primary" size="15px" text-color="white">
+                      <img :src="selectedCountries.icon" />
+                    </q-avatar>
+                    {{ selectedCountries.label }}
+                  </div>
+                  <div v-else></div>
+                </template>
+              </q-select>
+            </div>
+            <div class="w-full py-2">
+              <q-select
+                outlined
+                v-model="selectedProgram"
+                @input="getSubjects"
+                :options="getSelectedProgramsByCountry"
+                label="Programs"
+                :hint="`Current Program: ${
+                  selectedUser && selectedUser.extra_info.program
+                }`"
+              />
+            </div>
+            <div class="w-full py-2">
+              <q-select
+                outlined
+                v-model="selectedSubjects"
+                :options="getSelectedProgramSubjects"
+                multiple
+                label="Subjects"
+              />
+            </div>
+            <div class="w-full py-2">
+              <span>Current Subjects</span>
+              <br>
+              <q-chip
+                :style="`background-color:${sub.bgColor}`"
+                class="text-white"
+                dense
+                v-for="(sub, index) in selectedUser &&
+                selectedUser.extra_info.subjects"
+                :key="index"
+                >{{ sub.label }}</q-chip
+              >
+            </div>
+            <div class="w-full py-2">
+              <q-checkbox v-model="canDelete" label="Can Delete?" />
+            </div>
+          </div>
+        </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn flat label="Save" color="primary" @click="updateTa" no-caps v-close-popup />
+           <q-btn flat label="Cancel" color="negative" no-caps v-close-popup />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </div>
 </template>
 <script>
@@ -108,51 +254,15 @@ export default {
   data() {
     return {
       chooseTa: "",
-      items: [
-        {
-          id: 1,
-          name: "ashraf",
-          email: "ashraf@abwaab.me",
-          country: "",
-          program: "",
-          subject: [],
-        },
-        {
-          id: 2,
-          name: "abdullah",
-          email: "abudllah@abwaab.me",
-          country: "",
-          program: "",
-          subject: [],
-        },
-        {
-          id: 3,
-          name: "hamdi",
-          email: "hamdi@abwaab.me",
-          country: "",
-          program: "",
-          subject: [],
-        },
-        {
-          id: 4,
-          name: "hussien",
-          email: "hussien@abwaab.me",
-          country: "",
-          program: "",
-          subject: [],
-        },
-        {
-          id: 5,
-          name: "wajd",
-          email: "wajd@abwaab.me",
-          country: "",
-          program: "",
-          subject: [],
-        },
-      ],
+      items: [],
+      edit: false,
       program: null,
       Countries: null,
       subjects: [],
+      selectedProgram: null,
+      selectedCountries: null,
+      selectedSubjects: [],
+      canDelete: false,
       websiteCountries: [
         {
           id: 1,
@@ -176,60 +286,88 @@ export default {
     };
   },
   methods: {
-    ...mapActions(["getPrograms", "getProgramSubject", "getTeacherAssistant", "assignTA"]),
+    ...mapActions([
+      "getPrograms",
+      "getProgramSubject",
+      "getTeacherAssistant",
+      "assignTA",
+    ]),
+    getImage(event) {
+      event.target.src = require("../assets/img/abwaab-user-default.png");
+    },
     search() {
       var searchResult = [];
-      debugger
-      if(this.Countries){
+      debugger;
+      if (this.Countries) {
         for (let index = 0; index < this.items.length; index++) {
           if (this.items[index].extra_info.countryId === this.Countries.value) {
             searchResult.push(this.items[index]);
           }
         }
         this.items = searchResult;
-      }else if(this.program){
+      } else if (this.program) {
         for (let index = 0; index < this.items.length; index++) {
           if (this.items[index].extra_info.programId === this.program.value) {
             searchResult.push(this.items[index]);
           }
         }
         this.items = searchResult;
-      }else{
+      } else {
         for (let index = 0; index < this.items.length; index++) {
-          if (this.items[index].extra_info.subjects.id === this.subjects.value) {
+          if (
+            this.items[index].extra_info.subjects.id === this.subjects.value
+          ) {
             searchResult.push(this.items[index]);
           }
         }
         this.items = searchResult;
       }
-      if(!this.items.length){
-        this.Countries = ""
-        this.program = ""
-        this.subjects = ""
+      if (!this.items.length) {
+        this.Countries = "";
+        this.program = "";
+        this.subjects = "";
         this.$q.notify({
           message: "No Data Found",
           color: "negative",
-          icon: "warning"
+          icon: "warning",
         });
-        this.$forceUpdate()
+        this.$forceUpdate();
         return;
       }
     },
     addTa() {
       let data = {
         id: this.chooseTa,
-        extra_info:{
+        extra_info: {
           country: this.Countries.label,
           countryId: this.Countries.value,
           program: this.program.label,
-          programId:this.program.value,
-          subjects: this.subjects
-        }
-      }
-      this.assignTA(data)
+          programId: this.program.value,
+          subjects: this.subjects,
+        },
+      };
+      this.assignTA(data);
+    },
+    updateTa() {
+      let data = {
+        id: this.chooseTa,
+        extra_info: {
+          country:   this.selectedCountries.label,
+          countryId: this.selectedCountries.value,
+          program:   this.selectedProgram.label,
+          programId: this.selectedProgram.value,
+          subjects:  this.selectedSubjects,
+          canDelete: this.canDelete
+        },
+      };
+      
+      this.assignTA(data);
     },
     getSubjects() {
       this.getProgramSubject(this.program.value);
+    },
+    getSubjects() {
+      this.getProgramSubject(this.selectedProgram.value);
     },
     clear() {
       this.program = null;
@@ -238,6 +376,11 @@ export default {
   },
   computed: {
     ...mapGetters(["programs", "ProgramSubjects", "teaching_assistant"]),
+    selectedUser() {
+      return this.items.filter((item) => {
+        return item.id == this.chooseTa;
+      })[0];
+    },
     getProgramsByCountry() {
       if (this.Countries) {
         let programs = [];
@@ -266,9 +409,37 @@ export default {
       });
       return subjects;
     },
-    getData(){
-      return this.items =  this.teaching_assistant;
-    }
+    getSelectedProgramsByCountry() {
+      if (this.selectedCountries) {
+        let programs = [];
+        this.programs.filter((program) => {
+          if (program.country == this.selectedCountries.value) {
+            programs.push({
+              id: program.id,
+              label: program.title_ar,
+              value: program.id,
+            });
+          }
+        });
+        return programs;
+      }
+    },
+    getSelectedProgramSubjects() {
+      this.selectedsubjects = null;
+      let subjects = [];
+      this.ProgramSubjects.filter((subject) => {
+        subjects.push({
+          id: subject.id,
+          label: subject.title_ar,
+          value: subject.id,
+          bgColor: subject.bgColor,
+        });
+      });
+      return subjects;
+    },
+    getData() {
+      return (this.items = this.teaching_assistant);
+    },
   },
 };
 </script>

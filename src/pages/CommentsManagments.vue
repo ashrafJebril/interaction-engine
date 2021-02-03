@@ -25,7 +25,7 @@
         <div class="flex justify-end w-4/5">
           <q-input
             class="w-1/5 mx-1"
-            outlined
+            filled
             dense
             debounce="300"
             v-model="filter"
@@ -37,7 +37,7 @@
           </q-input>
           <div class="w-1/5 mx-1">
             <q-input
-              outlined
+              filled
               dense
               clearable
               readonly
@@ -60,7 +60,7 @@
           </div>
           <div class="w-1/5 mx-1">
             <q-select
-              outlined
+              filled
               dense
               v-model="Countries"
               :options="websiteCountries"
@@ -99,7 +99,7 @@
       </template>
 
       <template v-slot:body="props">
-        <q-tr :props="props">
+        <q-tr :props="props" :class="props.row.comments.length > 0 ? 'bg-blue-100': ''">
 
           <q-td auto-width>
             <q-btn
@@ -111,9 +111,9 @@
               :icon="props.expand ? 'keyboard_arrow_up' : 'keyboard_arrow_down'"
             />
           </q-td>
-          <q-td v-for="col in props.cols" :key="col.name" :props="props">{{ col.value }}</q-td>
+          <q-td v-for="col in props.cols" :key="col.name" :props="props">{{ col.value }} </q-td>
         </q-tr>
-        <q-tr v-show="props.expand" :props="props">
+        <q-tr v-show="props.expand" :props="props" >
           <q-td colspan="100%">
             <div class="flex flex-col">
               <h4>Comments</h4>

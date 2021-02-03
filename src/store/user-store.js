@@ -22,7 +22,10 @@ const actions = {
       await new graphqlClient(token).subscribe({
         query: gql `
         query teaching_assistant {
-          users(where: {user_type: {_eq: "teaching_assistant"}}) {
+          users(where: {_or: [
+            {user_type: {_eq: "teaching_assistant"}},
+            {user_type: {_eq: "teacher"}}
+          ], }) {
             id
             avatar_url
             display_name
