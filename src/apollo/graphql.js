@@ -21,7 +21,7 @@ export default class apollo {
     if (token) {
       const httpLink = new HttpLink({
         // You should use an absolute URL here
-        uri: 'http://interactionengine-env.eba-t6fqryya.eu-west-1.elasticbeanstalk.com/v1/graphql',
+        uri: 'http://interactionengine-env.eba-t6fqryya.eu-west-1.elasticbeanstalk.com:8080/v1/graphql',
         fetch,
           headers: {
             Authorization: `Bearer ${token}`
@@ -30,7 +30,7 @@ export default class apollo {
 
       // Create the subscription websocket link
       const wsLink = new WebSocketLink({
-        uri: 'ws://interactionengine-env.eba-t6fqryya.eu-west-1.elasticbeanstalk.com/v1/graphql',
+        uri: 'ws://interactionengine-env.eba-t6fqryya.eu-west-1.elasticbeanstalk.com:8080/v1/graphql',
         options: {
           reconnect: true,
           connectionParams: {

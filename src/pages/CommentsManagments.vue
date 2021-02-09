@@ -502,7 +502,7 @@ export default {
         limit: this.pagination.rowsPerPage,
         offset: 0
       });
-      console.log(this.data)
+      
       this.reCoil = false;
       this.$forceUpdate();
     }

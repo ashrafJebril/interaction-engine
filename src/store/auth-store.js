@@ -85,7 +85,6 @@ const actions = {
     await axios.post('https://j0mxal47ub.execute-api.eu-west-1.amazonaws.com/interaction/syncuser', null, {
       headers: headers
     }).then(res => {
-      console.log(res)
       if (res.data.data['X-Hasura-Role'] == 'student') {
         Notify.create({
           color: "negative",

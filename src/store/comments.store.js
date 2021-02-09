@@ -1,8 +1,6 @@
 import graphqlClient from '../apollo/graphql';
 import gql from "graphql-tag";
-import {
-  LocalStorage
-} from 'quasar'
+import {Token} from '../util/token.service'
 const state = {
   comments: {},
   firebaseUser: {}
@@ -24,7 +22,7 @@ const actions = {
   }, payload) {
     try {
       let token = LocalStorage.getItem('tokens') ? LocalStorage.getItem('tokens').access_token : ''
-      const comments = await new graphqlClient(token).query({
+      const comments = await new graphqlClient(Token.getInstance()._get()).query({
         query: gql `
         query Comments($limit: Int, $offset: Int) {
           comments(where: {parent_comment: {_is_null: true}}, limit: $limit, offset: $offset, order_by: {id: desc}) {
@@ -66,7 +64,7 @@ const actions = {
     dispatch
   }, payload) {
     let token = LocalStorage.getItem('tokens') ? LocalStorage.getItem('tokens').access_token : ''
-    new graphqlClient(token)
+    new graphqlClient(Token.getInstance()._get())
       .mutate({
         // Query
         mutation: gql `

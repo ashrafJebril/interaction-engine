@@ -59,7 +59,6 @@
         no-caps
         >Search</q-btn
       >
-
     </div>
 
     <div class="p-4 flex">
@@ -106,6 +105,15 @@
                 {{ selectedUser && selectedUser.username }}
               </q-item-label>
             </q-item-section>
+            <q-item-section side>
+              <q-btn
+                icon="settings"
+                @click="edit = !edit"
+                flat
+                round
+                color="primary"
+              ></q-btn>
+            </q-item-section>
           </q-item>
 
           <q-card-section>
@@ -120,12 +128,16 @@
                 </tr>
               </thead>
               <tbody>
-                <tr>
+                <tr v-if="selectedUser.extra_info">
                   <td class="py-4 text-center">
-                    {{ selectedUser.extra_info.country }}
+                    {{
+                      selectedUser.extra_info && selectedUser.extra_info.country
+                    }}
                   </td>
                   <td class="py-4 text-center">
-                    {{ selectedUser.extra_info.program }}
+                    {{
+                      selectedUser.extra_info && selectedUser.extra_info.program
+                    }}
                   </td>
                   <td class="py-4 text-center" v-if="selectedUser.extra_info">
                     <q-chip
@@ -138,7 +150,10 @@
                   </td>
                   <td class="text-center">
                     <q-icon
-                    v-if="selectedUser.extra_info.canDelete"
+                      v-if="
+                        selectedUser.extra_info &&
+                        selectedUser.extra_info.canDelete
+                      "
                       name="check_circle_outline"
                       class="text-green"
                       style="font-size: 2em"
@@ -182,7 +197,9 @@
                 :options="websiteCountries"
                 label="Countries"
                 :hint="`Current Country: ${
-                  selectedUser && selectedUser.extra_info.country
+                  selectedUser &&
+                  selectedUser.extra_info &&
+                  selectedUser.extra_info.country
                 }`"
               >
                 <template v-slot:selected>
@@ -204,7 +221,9 @@
                 :options="getSelectedProgramsByCountry"
                 label="Programs"
                 :hint="`Current Program: ${
-                  selectedUser && selectedUser.extra_info.program
+                  selectedUser &&
+                  selectedUser.extra_info &&
+                  selectedUser.extra_info.program
                 }`"
               />
             </div>
@@ -219,12 +238,13 @@
             </div>
             <div class="w-full py-2">
               <span>Current Subjects</span>
-              <br>
+              <br />
               <q-chip
                 :style="`background-color:${sub.bgColor}`"
                 class="text-white"
                 dense
                 v-for="(sub, index) in selectedUser &&
+                selectedUser.extra_info &&
                 selectedUser.extra_info.subjects"
                 :key="index"
                 >{{ sub.label }}</q-chip
@@ -237,8 +257,15 @@
         </q-card-section>
 
         <q-card-actions align="right">
-          <q-btn flat label="Save" color="primary" @click="updateTa" no-caps v-close-popup />
-           <q-btn flat label="Cancel" color="negative" no-caps v-close-popup />
+          <q-btn
+            flat
+            label="Save"
+            color="primary"
+            @click="updateTa"
+            no-caps
+            v-close-popup
+          />
+          <q-btn flat label="Cancel" color="negative" no-caps v-close-popup />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -352,15 +379,15 @@ export default {
       let data = {
         id: this.chooseTa,
         extra_info: {
-          country:   this.selectedCountries.label,
+          country: this.selectedCountries.label,
           countryId: this.selectedCountries.value,
-          program:   this.selectedProgram.label,
+          program: this.selectedProgram.label,
           programId: this.selectedProgram.value,
-          subjects:  this.selectedSubjects,
-          canDelete: this.canDelete
+          subjects: this.selectedSubjects,
+          canDelete: this.canDelete,
         },
       };
-      
+
       this.assignTA(data);
     },
     getSubjects() {

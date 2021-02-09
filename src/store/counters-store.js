@@ -1,5 +1,6 @@
 import graphqlClient from '../apollo/graphql';
 import gql from "graphql-tag";
+import {Token} from '../util/token.service'
 import {
   LocalStorage
 } from 'quasar'
@@ -28,8 +29,8 @@ const actions = {
     commit
   }) {
     try {
-      let token = LocalStorage.getItem('tokens') ? LocalStorage.getItem('tokens').access_token : ''
-      await new graphqlClient(token).subscribe({
+
+      await new graphqlClient(Token.getInstance()._get()).subscribe({
         query: gql `
         query PostCount {
           comments(where: {parent_comment: {_is_null: true}}) {
@@ -39,7 +40,7 @@ const actions = {
 
             `
       }).subscribe(res => {
-        // console.log(res.data.comments.length)
+        
         commit('getPostsCount', res.data.comments.length)
       })
     } catch (err) {
@@ -52,8 +53,8 @@ const actions = {
     commit
   }) {
     try {
-      let token = LocalStorage.getItem('tokens') ? LocalStorage.getItem('tokens').access_token : ''
-      await new graphqlClient(token).subscribe({
+      
+      await new graphqlClient(Token.getInstance()._get()).subscribe({
         query: gql `
         query MyQuery {
           comments(where: {parent_comment: {_is_null: false}}) {

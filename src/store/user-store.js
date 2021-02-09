@@ -1,8 +1,6 @@
 import graphqlClient from '../apollo/graphql';
 import gql from "graphql-tag";
-import {
-  LocalStorage
-} from 'quasar'
+import {Token} from '../util/token.service'
 const state = {
   teaching_assistant: []
 }
@@ -18,8 +16,8 @@ const actions = {
     commit
   }) {
     try {
-      let token = LocalStorage.getItem('tokens') ? LocalStorage.getItem('tokens').access_token : '';
-      await new graphqlClient(token).subscribe({
+      ;
+      await new graphqlClient(Token.getInstance()._get()).subscribe({
         query: gql `
         query teaching_assistant {
           users(where: {_or: [
@@ -46,8 +44,8 @@ const actions = {
   assignTA({
     dispatch
   }, payload) {
-    let token = LocalStorage.getItem('tokens') ? LocalStorage.getItem('tokens').access_token : ''
-    new graphqlClient(token)
+    
+    new graphqlClient(Token.getInstance()._get())
       .mutate({
         // Query
         mutation: gql `
@@ -69,9 +67,8 @@ const actions = {
     commit,
     dispatch
   }, payload) {
-    console.log(payload)
-    let token = LocalStorage.getItem('tokens') ? LocalStorage.getItem('tokens').access_token : ''
-    new graphqlClient(token)
+    
+    new graphqlClient(Token.getInstance()._get())
       .query({
         // Query
         query: gql `
