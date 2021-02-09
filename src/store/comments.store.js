@@ -21,7 +21,6 @@ const actions = {
     dispatch
   }, payload) {
     try {
-      let token = LocalStorage.getItem('tokens') ? LocalStorage.getItem('tokens').access_token : ''
       const comments = await new graphqlClient(Token.getInstance()._get()).query({
         query: gql `
         query Comments($limit: Int, $offset: Int) {
@@ -56,7 +55,8 @@ const actions = {
 
       commit('getComments', comments.data.comments)
     } catch (err) {
-      dispatch('logout')
+      console.log(err)
+      // dispatch('logout')
     }
 
   },
