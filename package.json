@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "description": "",
   "productName": "Interaction engine",
-  "author": "abdallah abukhader",
+  "author": "Ashraf Jebril",
   "private": true,
   "scripts": {
     "test": "echo \"No test specified\" && exit 0"
