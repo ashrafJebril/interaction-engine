@@ -1,5 +1,5 @@
 <template>
-  <div class="lg:flex">
+  <div class="lg:flex md:flex-row flex-col">
     <div class="lg:w-1/2 xl:max-w-screen-sm">
       <div class="py-12 bg-blue-100 lg:bg-white flex justify-center lg:justify-start lg:px-12">
         <div class="cursor-pointer flex items-center">
@@ -47,7 +47,7 @@
         </div>
       </div>
     </div>
-    <div class="lg:flex items-center justify-center bg-blue-100 flex-1 h-screen">
+    <div class=" lg:flex items-center justify-center bg-blue-100 flex-1 h-64 md:h-screen">
       <div class="max-w-xs">
         <img src="../../assets/img/Access.svg" alt />
       </div>
